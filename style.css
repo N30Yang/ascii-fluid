@@ -1,0 +1,71 @@
+:root {
+    --cell-size: 8px;
+}
+
+* {
+    user-select: none;
+}
+
+body {
+    margin: 0;
+    background: #000;
+    color: #fff;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Monaco,
+        "Courier New", monospace, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+canvas {
+    z-index: 10;
+    image-rendering: pixelated;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+.render {
+    position: fixed;
+    top: 0;
+    left: 0;
+    white-space: pre;
+    letter-spacing: 0.4em;
+}
+
+.info {
+    text-transform: uppercase;
+    position: fixed;
+    top: 0.5em;
+    letter-spacing: 0.1em;
+    z-index: 100;
+}
+
+.info.-right {
+    right: 0;
+}
+
+.info.-left {
+    left: 0;
+}
+
+.render,
+.info {
+    font-size: var(--cell-size);
+    line-height: var(--cell-size);
+    font-weight: 700;
+}
+
+.info a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    padding: 0.5em 1em 1.5em;
+    text-align: right;
+}
+
+.info a:hover {
+    color: #00ffff
+}
+
+.info .info-label {
+    display: inline-block;
+    background: black;
+}
