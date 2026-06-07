@@ -140,3 +140,4 @@ class FlipFluid {
         this.particledensity = new Float32Array(3 * this.maxparticles);
         this.particlerestdensity = 0.0;
     }
+}
