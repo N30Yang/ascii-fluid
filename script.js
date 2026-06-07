@@ -28,16 +28,16 @@ const cell_crop_y = 2;
 const base = [
     ["~", 12198],
     [":", 6921],
-    ["-", 5589],
-    [".", 3267],
-    [" ", 0],
-    [" ", 0],
-];
-
-const render_chars = [
-    [["N", 29420], ["N", 29420], ["n", 17950], ...base],
-    [["E", 25880], ["E", 25880], ["e", 18840], ...base],
-    [["O", 32973], ["O", 32973], ["o", 21645], ...base],
+    ["-", 5589],//    /
+    [".", 3267],//    <-------------------------------------------
+    [" ", 0],//       \                                           \
+    [" ", 0],//                                                    |
+]; //                                                              |
+//                                                                 |
+const render_chars = [ //                                          |
+    [["N", 29420], ["N", 29420], ["n", 17950], ...base],//         |
+    [["E", 25880], ["E", 25880], ["e", 18840], ...base],//         |
+    [["O", 32973], ["O", 32973], ["o", 21645], ...base], // i hate brackets now :(
     [["X", 23150], ["X", 23150], ["x", 16420], ...base],
     [["Y", 19640], ["Y", 19640], ["y", 17110], ...base],
 ];
@@ -82,7 +82,7 @@ document.documentElement.style.setProperty(
     "--cell-size",
     grid_size + "px"
 );
-
+// i got the best practice for naming if ykyk
 canvase1.focus();
 var simHeight = 2.0;
 var cscale = canvase1.height / simHeight;
@@ -94,3 +94,49 @@ var aircell = 1;
 var solidcell = 2;
 var cnt = 0;
 
+
+// sim?? ts driving me insane save me
+// oh god
+// SEVEN HUNDREAD LINES OF CODE
+// AND ITS ONE CLASS
+// why did i do this
+
+class FlipFluid {
+    constructor(
+        density,
+        width,
+        height,
+        spacing,
+        particleRadius,
+        maxparticles
+    ) {
+        //fluid part
+        this.density = density;
+        this.fnumx = Math.floor(width / spacing);
+        this.fnumy = Math.floor(height / spacing);
+        this.h = Math.max(width / this.fnumx, height / this.fnumy);
+        this.finvspacing = 1 / this.h;
+        this.fnumcells = this.fnumx * this.fnumy;
+
+        this.u = new Float32Array(this.fnumcells);
+        this.v = new Float32Array(this.fnumcells);
+        this.du = new Float32Array(this.fnumcells);
+        this.dv = Float32Array(this.fnumcells);
+        this.prevu = Float32Array(this.fnumcells);
+        this.prevv = Float32Array(this.fnumcells);
+        this.p = Float32Array(this.fnumcells);
+        this.s = Float32Array(this.fnumcells);
+        this.celltype = Float32Array(this.fnumcells);
+        this.cellcolor = Float32Array(this.fnumcells);
+
+        //particless
+        this.maxparticles = maxparticles;
+
+        this.praticlepos = new Float32Array(2 * this.maxparticles);
+        this.particlecolor = new Float32Array(3 * this.maxparticles);
+        for (var i = 0; i < this.maxparticles; i++)
+            this.particlecolor[3 * i + 2] = 1.0;
+        this.particlevel = new Float32Array(2 * this.maxparticles);
+        this.particledensity = new Float32Array(3 * this.maxparticles);
+        this.particlerestdensity = 0.0;
+    }
