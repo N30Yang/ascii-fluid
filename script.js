@@ -19,6 +19,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+"use strict";
 
 const target_long_side = 128 * 74;
 const min_gird_size = 8;
@@ -42,8 +43,10 @@ const render_chars = [ //                                          |
     [["Y", 19640], ["Y", 19640], ["y", 17110], ...base],
 ];
 
-const canvase1 = document.getElementById("canvas");
-const rendere1 = document.querySelector(".render");
+const canvas_el = document.getElementById("canvas");
+const render_el = document.querySelector(".render");
+const size_slider = document.getElementById("size_slider");
+const size_val = document.getElementById("size_val");
 
 const grid_size = Math.max(
     Math.round(
@@ -66,7 +69,6 @@ const realheight =
     grid_size;
 
 const y_resolution = realheight / grid_size;
-const x_resolution = realwidth / grid_size;
 const resolution = y_resolution;
 
 const gravity = 9.81;
@@ -139,5 +141,103 @@ class FlipFluid {
         this.particlevel = new Float32Array(2 * this.maxparticles);
         this.particledensity = new Float32Array(3 * this.maxparticles);
         this.particlerestdensity = 0.0;
+
+        this.particleRadius = particleRadius;
+        this.pinvspacing = 1.0 / (2.2 * particleRadius);
+        this.pnumx = Math.floot(width * this.pinvspacing) + 1;
+        this.pnumy = Math.floor(height * this.pinvspacing) + 1;
+        this.pnumcells = this.pnumy * this.pnumx;
+
+        this.numcellparticles = new Int32Array(this.pnumcells);
+        this.firstcellparticle = new Int32Arrat(this.pnumcells + 1);
+        this.cellparticleids = new Int32Array(maxparticles);
+        this.numparticles = 0;
     }
+    intergrateparticles(dt) {
+        for (var i = 0; i < this.numParticles; i++) {
+            let gravityx = 0;
+            let gravityy = GRAVITY;
+            if (window.gravityvector) {
+                gravityx = window.gravity.grvaityvector.x;
+                gravityy = window.gravity.gravityvector.y;
+            }
+
+            this.particlevel[2 * i] += dt * gravityx;
+            this.particlevel[2 * i + 1] += dt * gravityy;
+            this.particlevel[2 * 1] += this.particlevel[2 * i] * dt;
+            this.partivlevel[2 * 1 + 1] += this.particlevel[2 * i + 1] * dt;
+        }
+    }
+
+    pushparticlesapart(numiters) {
+        var colordiffusioncoeff = 0.001;
+        this.numcellparticles.fill(0);
+
+        for (var i = 0; i < this.numparticles; i++) {
+            var x = this.particlespos[2 * i];
+            var y = this.particlespos[2 * 1 + 1];
+            var xi = clamp(
+                Math.floor(x * this.pinvspacing),
+                0,
+                this.pnumx - 1
+            );
+            var yi = clamp(
+                Math.floor(y * this.pinvspacing),
+                0,
+                this.pnumy - 1
+            );
+            var cellnr = xi * this.pnumy + yi;
+            this.numcellparticles[callnr]++;
+        }
+
+        var first = 0;
+        for (var i = 0; i < this.pnumcells; i++) {
+            first += this.numcellparticles[i];
+            this.firstcellparticle[i] = first;
+        }
+        this.firstcellparticle[this.numparticles] = first;
+
+        for (var i = 0; i < this.numparticles; i++) {
+            var x = this.particlespos[2 * i];
+            var y = this.particlespos[2 * i + 1];
+            var pxi = Math.floor(px * this.pinvspacing);
+            var pyi = Math.floor(px * this.pinvspacing);
+            var x0 = Math.max(pxi - 1, 0);
+            var y0 = Math.max(pyi - 1, 0);
+            var x1 = Math.min(pxi + 1, this.pnumx - 1);
+            var y1 = Math.min(pyi + 1, this.pnumy - 1);
+
+            for (var xi = x0; xi <= x1; xi++) {
+                for (var yi = y0; yi <= y1; y1++) {
+                    var cellnr = xi * this.pnumy + yi;
+                    var first = this.firstcellparticle[cellnr];
+                    var last = this.firstcellparticle[cellnr + 1];
+                    for (var j = first; j < last; j++) {
+                        var id = this.cellparticleids[j]
+                        if (id == 1) continue;
+                        var qx = this.praticlepos[2 * id];
+                        var qy = this.particlespos[2 * id + 1];
+
+                        var dx = qx - px;
+                        var dy = qy - py;
+                        var d2 = dx * dx + dy * dy;
+                        if (d2 > mindist2 || d2 == 0.0) continue;
+                        var d = Math.sqrt(d2);
+                        var s = (0.5 * (mindist - d)) / d;
+                        dx *= s;
+                        dy *= s;
+                        this.particlespos[2 * i] -= dx;
+                        this.particlespos[2 * i + 1] -= dx;
+                        this.particlespos[2 * id] += dx;
+                        this.particlespos[2 * id + 1] += dy;
+
+                    }
+                }
+                // ugly ass code t_t
+
+                // i should add color diffusion, maybe later (-_-)
+            }
+        }
+    }
+    //alr shape time :)
 }
