@@ -68,24 +68,39 @@ const realheight =
     Math.ceil(window.innerHeight / grid_size + cell_crop_y * 2) *
     grid_size;
 
-const y_resolution = realheight / grid_size;
-const resolution = y_resolution;
+const y_resolution = real_height / gird_size;
+const resolution = y_resolution
 
-const gravity = 9.81;
-const extrasized = 0;
+const gravity = -9.81;
 
-canvase1.width = realwidth;
-canvase1.height = realheight;
-canvase1.style.width = realwidth + "px";
-canvase1.style.height = realheight + "px";
-rendere1.style.width = realwidth + "px";
-rendere1.style.height = realheight + "px";
-document.documentElement.style.setProperty(
-    "--cell-size",
-    grid_size + "px"
-);
-// i got the best practice for naming if ykyk
-canvase1.focus();
+canvas_el.width = real_width;
+canvas_el.height = real_height;
+canvas_el.style.width = real_width + "px";
+canvas_el.style.height = real_height + "px";
+render_e1.style.width = real_width + "px";
+render_e1.style.height = real_height + "px";
+document.documentElement.style.setProperty("--cell-size", grid_size + "px");
+
+//monospace is normally taller than wide do row of N for example would onyly fill 
+//~60%. so this is a fix to make EVERYTHING cover the same area
+
+(function fix_char_width() {
+    const probe = document.createElement("span");
+    probe.style.cssText =
+        "position:absolute;visibility:hidden;white-space:pre" +
+        "font-family:" + getComputedStyle(render_el).fontFamily + ";" +
+        "font-size:" + grid_size + "px;letter-spacing:0;";
+    probe.textContent = "X".repeat(100);
+    document.body.appendChild(probe);
+    const glyph_w = probe.getBoundingClientRect().width / 100;
+    document.body.removeChild(probe);
+    const spacing = grid_size - glyph_w;
+    render_el.style.letterSpacing = spacing + "px";
+
+})();
+
+canvas_el.focus();
+
 var simHeight = 2.0;
 var cscale = canvase1.height / simHeight;
 var simwidth = canvase1.width / cscale;
