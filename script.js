@@ -101,16 +101,17 @@ document.documentElement.style.setProperty("--cell-size", grid_size + "px");
 
 canvas_el.focus();
 
-var simHeight = 2.0;
-var cscale = canvase1.height / simHeight;
-var simwidth = canvase1.width / cscale;
-var u_field = 0;
-var v_field = 1;
-var fluidcell = 0;
-var aircell = 1;
-var solidcell = 2;
-var cnt = 0;
+var sim_height = 2.0;
+var c_scale = canvas_el.height / sim_height;
+var sim_width = canvas_el.width / c_scale;
 
+var fluid_cell = 0;
+var air_cell = 1 ;
+var solid_cell = 2;
+
+function clamp(x, min, max) {
+    return x< min? min:x>max?max:x;
+}
 
 // sim?? ts driving me insane save me
 // oh god
