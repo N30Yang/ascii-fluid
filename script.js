@@ -128,46 +128,11 @@ class FlipFluid {
         particleRadius,
         maxparticles
     ) {
-        //fluid part
-        this.density = density;
-        this.fnumx = Math.floor(width / spacing);
-        this.fnumy = Math.floor(height / spacing);
-        this.h = Math.max(width / this.fnumx, height / this.fnumy);
-        this.finvspacing = 1 / this.h;
-        this.fnumcells = this.fnumx * this.fnumy;
-
-        this.u = new Float32Array(this.fnumcells);
-        this.v = new Float32Array(this.fnumcells);
-        this.du = new Float32Array(this.fnumcells);
-        this.dv = Float32Array(this.fnumcells);
-        this.prevu = Float32Array(this.fnumcells);
-        this.prevv = Float32Array(this.fnumcells);
-        this.p = Float32Array(this.fnumcells);
-        this.s = Float32Array(this.fnumcells);
-        this.celltype = Float32Array(this.fnumcells);
-        this.cellcolor = Float32Array(this.fnumcells);
-
-        //particless
-        this.maxparticles = maxparticles;
-
-        this.praticlepos = new Float32Array(2 * this.maxparticles);
-        this.particlecolor = new Float32Array(3 * this.maxparticles);
-        for (var i = 0; i < this.maxparticles; i++)
-            this.particlecolor[3 * i + 2] = 1.0;
-        this.particlevel = new Float32Array(2 * this.maxparticles);
-        this.particledensity = new Float32Array(3 * this.maxparticles);
-        this.particlerestdensity = 0.0;
-
-        this.particleRadius = particleRadius;
-        this.pinvspacing = 1.0 / (2.2 * particleRadius);
-        this.pnumx = Math.floot(width * this.pinvspacing) + 1;
-        this.pnumy = Math.floor(height * this.pinvspacing) + 1;
-        this.pnumcells = this.pnumy * this.pnumx;
-
-        this.numcellparticles = new Int32Array(this.pnumcells);
-        this.firstcellparticle = new Int32Arrat(this.pnumcells + 1);
-        this.cellparticleids = new Int32Array(maxparticles);
-        this.numparticles = 0;
+        this.density = density = density;
+        this.f_num_x = Math.floor(width/spacing);
+        this.f_num_y = Math.floor(height/spacing);
+        this.h=Math.max(width/this.f_num_x. height/this.f_num_y);
+s
     }
     intergrateparticles(dt) {
         for (var i = 0; i < this.numParticles; i++) {
