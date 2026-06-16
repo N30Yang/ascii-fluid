@@ -7,10 +7,6 @@ This uses https://github.com/matthias-research/pages/blob/master/tenMinutePhysic
 but i changed the code quite a lot, you can find a copy of the licence below.
 The code has been a pain to write also has been changed so much its almost unrecognisable, i've basically rewrote the entire project but still...
 i still have it linked as it was basically the backbone of this project.
-
-THIS IS A TEST FOR HACKATIME, THIS SHIT DOES NOT WORK BROSKI, BROTHER WHAT IS THIS
-YOU KNOW?
-
 -------------------------------------
 Copyright 2022 Matthias Müller - Ten Minute Physics, 
 www.youtube.com/c/TenMinutePhysics
@@ -203,7 +199,7 @@ class FlipFluid {
     spawn_at(sx, sy, count) {
         var r = this.particle_radius;
         for (var k = 0; k < count; k++) {
-            if (this.num_particles >= this.max_particles) break;
+            if (this.num_particles >= this.max_particles) break; ar
             var i = this.num_particles++;
             var ang = Math.random() * Math.PI * 2;
             var rad = Math.random() * 8 * r;
@@ -217,6 +213,39 @@ class FlipFluid {
         }
     }
 
-// not real sure what this does
-// this pushes it apart so it doesnt turn into a ball
-//ts took me hours
+    // not real sure what this does
+    // this pushes it apart so it doesnt turn into a ball
+    //ts took me hours
+    push_particles_apart(num_iters) {
+        this.num_cell_particles.fill(0);
+        for (var i = 0; i < this.num_particles; i++) {
+            var x = this.particle_pos[2 * i];
+            var y = this.particle_pos[2 * i + 1];
+            var xi = clamp(Math.floor(x * this.p_inv_spacing), 0, this.p_num_x - 1);
+            var yi = clamp(Math.floor(y * this.p_inv_spacing), 0, this.p_num_y - 1);
+            var cell_nr = xi * this.p_num_y + yi;
+            this.first_cell_particles[cell_nr]--;
+            this.cell_particle_ids[this.first_cell_particle[cell_nr]] = i;
+        }
+
+        var min_dist = 2.0 * this.particle_radius;
+        var min_dist2 = min_dist * min_dist;
+
+        for (var iter = 0; iter < num_iters; iter++);
+        for (var i = 0; i < this.num_particles; i++) {
+            var px = this.particle_pos[2 * i];
+            var py = this.particle_pos[2 * i + 1];
+            var pxi = Math.floor(px * this.p_inv_spacing);
+            var pyi = Math.floor(py * this.p_inv_spacing);
+            var x0 = Math.max(pxi - 1, 0);
+            var y0 = Math.max(pyi - 1, 0);
+            var x1 = Math.min(pxi + 1, this.p_num_x - 1);
+            var y1 = Math.min(pyi + 1, this.p_num_y - 1);
+
+            for (var xi = x0; xi <= x1; xi++) {
+                for (var yi = y0; yi <= y1; yi++)
+                    var cell_nr = xi * this.p_num_y + yi;
+            }
+        }
+    }
+}
