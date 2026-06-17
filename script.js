@@ -243,8 +243,25 @@ class FlipFluid {
             var y1 = Math.min(pyi + 1, this.p_num_y - 1);
 
             for (var xi = x0; xi <= x1; xi++) {
-                for (var yi = y0; yi <= y1; yi++)
+                for (var yi = y0; yi <= y1; yi++) {
                     var cell_nr = xi * this.p_num_y + yi;
+                    var first_c = this.first_cell_particles[cell_nr];
+                    var last_c = this.first_cell_particles[cell_nr + 1];
+                    for (var j = first_c; j < last_c; j++) {
+                        var id = this.cell_particle_ids[j];
+                        if (id == i) continue;
+                        var qx = this.particle_pos[2 * id];
+                        var qy = this.particle_pos[2 * id + 1];
+                        var dx = qx - px;
+                        var dy = qy - py;
+                        var d2 = dx * dx + dy * dy
+                        if (d2 > min_dist2 || d2 == 0.0) continue;
+                        var d = Math.sqrt(d2);
+                        var s = (0.5 * (min_dist - d)) / d;
+                        dx *= s; dy *= s;
+                        this.particle_pos[2 * i] -= dx;
+                    }
+                }
             }
         }
     }
