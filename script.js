@@ -405,10 +405,56 @@ class FlipFluid {
                     if (dsum > 0.0) {
                         var pic_v = (v0 * d0 * f[nr0] + v1 * d1 * f[nr1] + v2 * d2 * f[nr2] + v3 * d3 * f[nr3]) / dsum;
                         var corr = (v0 * d0 * (f[nr0] - prev_f[nr0]) + v1 * d1 * (f[nr1] - prev_f[nr1]) + v2 * d2 * (f[nr2] - prev_f[nr2]) + v3 * d3 * (f[nr3] - prev_f[nr3])) / dsum;
-
+                        var flip_v = v + corr;
+                        this.particle_vel[2 * i + component] = (1.0 - flip_ration) * pic_v + flip_ration * flip_v;
+                    }
+                }
+            }
+            if (to_grid) {
+                for (var i = 0; i < f.length; i++) if (d_arr[i] > 0.0) f[i] /= d_arr[i];
+                for (var i = 0; i < this.f_num_x; i++) {
+                    for (var j = 0; j < this.f_num_y; j++) {
+                        var solid = this.cell_type[i * n + j] == solid_cell;
+                        if (solid || (j > 0 && this.cell_type[(i - 1) * n + j] == solid_cell)) this.u[i * n + j] = this.prev_u[i * n + j];
+                        if (solid || (j > 0 && this.cell_type[i * n + j - 1] == solid_cell)) this.v[i * n + j] = this.prev_v[i * n + j];
                     }
                 }
             }
         }
     }
+    // water part of water sim, make it not fly or something
+
+    solve_incompressibility(num_iters, dt, over_relaxation, compensate_drfit = true) {
+        this.p.fill(0.0);
+        this.prev_u.set(this.u); this.prev_v.set(this.v)
+        var n = this.f_num_y;
+        var pc = (this.density * this.h) / dt;
+        for (var iter = 0; iter < num_iters; iter++) {
+            for (var i = 0; i < this.f_num_y - 1; i++) {
+                for (var j = 1; j < this.f_num_y - 1; j++) {
+                    if (this.cell_type[i * n + j] != fluid_cell) continue;
+                    var center = i * n + j, left = (i - 1) * n + j, right = (i + 1) * n + j, bottom = i * n + j - 1, top = i * n + j + 1;
+                    var sx0 = this.s[left], sx1 = this.s[right], sy0 = this.s[bottom], sy1 = this.s[top];
+                    var s = sx0 + sx1 + sy0 + sy1;
+                    if (s == 0.0) continue;
+                    var div = this.u[right] - this.u[center] + this.v[top] - this.v[center];
+                    if (this.particle_rest_density > 0.0 && compensate_drift) {
+                        var compression = this.particle_density[i * n + j] - this.particle_rest_density;
+                        if (compression > 0.0) div = div - 1.0 * compression;
+                    }
+                    var p = -div / s;
+                    p *= over_relaxation;
+                    this.p[center] += pc * p;
+                    this.u[center] -= sx0 * p;
+                    this.u[right] += sx1 * p;
+                    this.v[center] -= sy0 * p;
+                    this.v[top] += sy1 * p;
+                }
+            }
+        }
+    }
+    // turns number into 50 shades of grey :(
+
+
+
 }
