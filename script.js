@@ -254,12 +254,8 @@ class FlipFluid {
                         var qy = this.particle_pos[2 * id + 1];
                         var dx = qx - px;
                         var dy = qy - py;
-                        var d2 = dx * dx + dy * dy
-                        if (d2 > min_dist2 || d2 == 0.0) continue;
-                        var d = Math.sqrt(d2);
-                        var s = (0.5 * (min_dist - d)) / d;
-                        dx *= s; dy *= s;
-                        this.particle_pos[2 * i] -= dx;
+                        var d2 = dx * dx + dy * dy;
+
                     }
                 }
             }
