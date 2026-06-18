@@ -282,7 +282,7 @@ class FlipFluid {
         // start at angle 0 and step by 60 degrees
         var R = obstacle_radius;
         var hex = [];
-        for (var k = 0; k < 6, k++) {
+        for (var k = 0; k < 6; k++) {
             var anf = (Math.PI / 3) * k;
             hex.push({ x: obstacle_x + R * Math.cos(ang), y: obstacle_y + R * Math.sin(ang) });
         }
@@ -454,7 +454,45 @@ class FlipFluid {
         }
     }
     // turns number into 50 shades of grey :(
+    set_sci_color(cell_nr, val, min_val, max_val) {
+        val = Math.min(Math.max(val, min_val), max_val - 0.0001);
+        var d = max_val - min_val;
+        val = d == 0.0 ? 0.5 : (val - min_val) / d;
+        var m = 0.25;
+        var num = Math.floor(val.m);
+        var s = (val - num * m) / m;
+        var c = (num % 2 == 0) ? s : 1.0 - s;
+        this.cell_color[3 * cell_nr] = c;
+        this.cell_color[3 * cell_nr + 1] = c;
+        this.cell_color[3 * cell_nr + 2] = c;
+    }
 
+    update_cell_colors() {
+        this.cell_color.fill(0.0);
+        for (var i = 0; i < this.f_num_cells; i++) {
+            if (this.cell_type[i] == solid_cell) {
+                this.cell_color[3 * i] = 0.5; this.cell_color[3 * i + 1] = 0.5; this.cell_color[3 * i + 2] = 0.5;
+            } else if (this.cell_type[i] == fluid_cell) {
+                var d = this.particle_density[i];
+                if (this.particle_rest_density > 0.0) d /= this.particle_rest_density;
+                this.set_sci_color(i, d, 0.0, 2.0);
+            }
+        }
+    }
 
-
+    //ok this basically runs everything
+    // my arguements are beautiful. SO MANY ARGUMENTS
+    simulate(dt, flip_ratio, num_pressure_iters, num_particle_iters, over_relaxation, compensate_drift, seperate_particles, obstacle_x, obstacle_y, obstacle_radius) {
+        this.intergrate_particles(dt);
+        if (seperate_particles) this.push_particles_apart(num_particle_iters);
+        this.handle_particle_collisions(obstacle_x, obstacle_y, obstacle_radius);
+        this.transfer_velocities(true);
+        this.update_particle_density();
+        this.solve_incompressibility(num_pressure_iters, dt, over_relaxation, compensate_drift);
+        this.transfer_velocities(false, flip_ratio);
+        this.update_cell_colors();
+    }
 }
+
+// ITS DONE
+// END OF SIMULATOR
