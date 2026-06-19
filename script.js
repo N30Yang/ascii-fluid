@@ -23,7 +23,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 "use strict";
 
 const target_long_side = 128 * 74;
-const min_gird_size = 8;
+const min_grid_size = 8;
 const cell_crop_x = 1;
 const cell_crop_y = 2;
 
@@ -75,21 +75,21 @@ const grid_size = Math.max(
             (window.innerWidth * window.innerHeight) / target_long_side
         )
     ),
-    min_gird_size
+    min_grid_size
 );
 
 const speed_1 = 1.0 / 60.0 / 16;
 const speed_base = 1.0 / 60.0 / 3;
 const speed_2 = 1.0 / 60.0 / 1.25;
 
-const realwidth =
+const real_width =
     Math.ceil(window.innerWidth / grid_size + cell_crop_x * 2) *
     grid_size;
-const realheight =
+const real_height =
     Math.ceil(window.innerHeight / grid_size + cell_crop_y * 2) *
     grid_size;
 
-const y_resolution = real_height / gird_size;
+const y_resolution = real_height / grid_size;
 const resolution = y_resolution
 
 const gravity = -9.81;
@@ -98,8 +98,8 @@ canvas_el.width = real_width;
 canvas_el.height = real_height;
 canvas_el.style.width = real_width + "px";
 canvas_el.style.height = real_height + "px";
-render_e1.style.width = real_width + "px";
-render_e1.style.height = real_height + "px";
+render_el.style.width = real_width + "px";
+render_el.style.height = real_height + "px";
 document.documentElement.style.setProperty("--cell-size", grid_size + "px");
 
 //monospace is normally taller than wide do row of N for example would onyly fill 
@@ -108,7 +108,7 @@ document.documentElement.style.setProperty("--cell-size", grid_size + "px");
 (function fix_char_width() {
     const probe = document.createElement("span");
     probe.style.cssText =
-        "position:absolute;visibility:hidden;white-space:pre" +
+        "position:absolute;visibility:hidden;white-space:pre;" +
         "font-family:" + getComputedStyle(render_el).fontFamily + ";" +
         "font-size:" + grid_size + "px;letter-spacing:0;";
     probe.textContent = "X".repeat(100);
@@ -149,10 +149,10 @@ class FlipFluid {
         particleRadius,
         maxparticles
     ) {
-        this.density = density = density;
+        this.density = density;
         this.f_num_x = Math.floor(width / spacing);
         this.f_num_y = Math.floor(height / spacing);
-        this.h = Math.max(width / this.f_num_x.height / this.f_num_y);
+        this.h = Math.max(width / this.f_num_x, height / this.f_num_y)
         this.f_inv_spacing = 1.0 / this.h;
         this.f_num_cells = this.f_num_x * this.f_num_y;
         this.u = new Float32Array(this.f_num_cells);
@@ -165,26 +165,27 @@ class FlipFluid {
         this.s = new Float32Array(this.f_num_cells);
         this.cell_type = new Float32Array(this.f_num_cells);
         this.cell_color = new Float32Array(3 * this.f_num_cells);
-        this.max_particles = this.max_particles;
+        this.cell_particle_ids = new Int32Array(maxparticles);
+        this.max_particles = maxparticles;
         this.particle_pos = new Float32Array(2 * this.max_particles);
         this.particle_color = new Float32Array(3 * this.max_particles);
         for (var i = 0; i < this.max_particles; i++) this.particle_color[3 * i + 2] = 1.0;
         this.particle_vel = new Float32Array(2 * this.max_particles);
         this.particle_density = new Float32Array(this.f_num_cells);
         this.particle_rest_density = 0.0;
-        this.particle_radius = this.particle_radius;
+        this.particle_radius = particleRadius;
         this.p_inv_spacing = 1.0 / (2.2 * this.particle_radius);
-        this.p_num_x = Math.floor(width * this.p_inv_spacing);
-        this.p_num_y = Math.floor(height * this.p_inv_spacing);
+        this.p_num_x = Math.floor(width * this.p_inv_spacing) + 1;
+        this.p_num_y = Math.floor(height * this.p_inv_spacing) + 1;
         this.p_num_cells = this.p_num_x * this.p_num_y;
         this.num_cell_particles = new Int32Array(this.p_num_cells);
         this.first_cell_particles = new Int32Array(this.p_num_cells + 1);
         this.num_particles = 0;
     }
-    intergrateparticles(dt) {
-        for (var i = 0; i < this.numParticles; i++) {
+    intergrate_particles(dt) {
+        for (var i = 0; i < this.num_particles; i++) {
             let gravity_x = 0;
-            let gravity_y = GRAVITY;
+            let gravity_y = gravity;
             if (window.gravity_vector) {
                 gravity_x = window.gravity_vector.x;
                 gravity_y = window.gravity_vector.y;
@@ -201,7 +202,7 @@ class FlipFluid {
     // funny button for chaos, press (s) to use
     shake(strength) {
         var cx = (this.f_num_x * this.h) * 0.5;
-        var cy = (this.F_num_y * this.h) * 0.5;
+        var cy = (this.f_num_y * this.h) * 0.5;
         for (var i = 0; i < this.num_particles; i++) {
             var dx = this.particle_pos[2 * i] - cx;
             var dy = this.particle_pos[2 * i + 1] - cy;
@@ -221,12 +222,11 @@ class FlipFluid {
         var r = this.particle_radius;
         for (var k = 0; k < count; k++) {
             if (this.num_particles >= this.max_particles) break;
-            ar
             var i = this.num_particles++;
             var ang = Math.random() * Math.PI * 2;
             var rad = Math.random() * 8 * r;
             this.particle_pos[2 * i] = sx + Math.cos(ang) * rad;
-            this.particle_pos[2 * i + 1] = sy + Math.sin(and) * rad; // holy trig
+            this.particle_pos[2 * i + 1] = sy + Math.sin(ang) * rad; // holy trig
             this.particle_vel[2 * i] = 0;
             this.particle_vel[2 * i + 1] = 0;
             this.particle_color[3 * i] = 0;
@@ -240,6 +240,26 @@ class FlipFluid {
     //ts took me hours
     push_particles_apart(num_iters) {
         this.num_cell_particles.fill(0);
+
+        // count particles per cell
+        for (var i = 0; i < this.num_particles; i++) {
+            var x = this.particle_pos[2 * i];
+            var y = this.particle_pos[2 * i + 1];
+            var xi = clamp(Math.floor(x * this.p_inv_spacing), 0, this.p_num_x - 1);
+            var yi = clamp(Math.floor(y * this.p_inv_spacing), 0, this.p_num_y - 1);
+            var cell_nr = xi * this.p_num_y + yi;
+            this.num_cell_particles[cell_nr]++;
+        }
+
+        // partial sums
+        var first = 0;
+        for (var i = 0; i < this.p_num_cells; i++) {
+            first += this.num_cell_particles[i];
+            this.first_cell_particles[i] = first;
+        }
+        this.first_cell_particles[this.p_num_cells] = first; // guard
+
+        // fill particles into cells
         for (var i = 0; i < this.num_particles; i++) {
             var x = this.particle_pos[2 * i];
             var y = this.particle_pos[2 * i + 1];
@@ -247,13 +267,13 @@ class FlipFluid {
             var yi = clamp(Math.floor(y * this.p_inv_spacing), 0, this.p_num_y - 1);
             var cell_nr = xi * this.p_num_y + yi;
             this.first_cell_particles[cell_nr]--;
-            this.cell_particle_ids[this.first_cell_particle[cell_nr]] = i;
+            this.cell_particle_ids[this.first_cell_particles[cell_nr]] = i;
         }
 
         var min_dist = 2.0 * this.particle_radius;
         var min_dist2 = min_dist * min_dist;
 
-        for (var iter = 0; iter < num_iters; iter++);
+        for (var iter = 0; iter < num_iters; iter++)
         for (var i = 0; i < this.num_particles; i++) {
             var px = this.particle_pos[2 * i];
             var py = this.particle_pos[2 * i + 1];
@@ -302,13 +322,13 @@ class FlipFluid {
         var min_x = h + r,
             max_x = (this.f_num_x - 1) * h - r;
         var min_y = h + r,
-            max_y = (this.f_num_y) * h - r;
+            max_y = (this.f_num_y-1 ) * h - r;
         // build hexagon verticies
         // start at angle 0 and step by 60 degrees
         var R = obstacle_radius;
         var hex = [];
         for (var k = 0; k < 6; k++) {
-            var anf = (Math.PI / 3) * k;
+            var ang = (Math.PI / 3) * k;
             hex.push({
                 x: obstacle_x + R * Math.cos(ang),
                 y: obstacle_y + R * Math.sin(ang)
@@ -353,7 +373,7 @@ class FlipFluid {
                     var t = len > 0 ? clamp((px * ex + py * ey) / len, 0, 1) : 0;
                     var proj_x = p1.x + t * ex,
                         proj_y = p1.y + t * ey;
-                    var dd = (x - proj_x) * (x - proj_y) + (y - proj_y) * (y - proj_y);
+                    var dd = (x - proj_x) * (x - proj_x) + (y - proj_y) * (y - proj_y);
                     if (dd < best) {
                         best = dd;
                         best_x = proj_x;
@@ -396,9 +416,9 @@ class FlipFluid {
             h2 = 0.5 * h;
         var d = this.particle_density;
         d.fill(0.0);
-        for (vari = 0; i < this.numparticles; i++) {
+        for (var i = 0; i < this.num_particles; i++) {
             var x = clamp(this.particle_pos[2 * i], h, (this.f_num_x - 1) * h);
-            var y = clamp(this.particle_pos[2 * i + 1], h, (this.f_num_x - 1) * h);
+            var y = clamp(this.particle_pos[2 * i + 1], h, (this.f_num_y - 1) * h);
             var x0 = Math.floor((x - h2) * h1),
                 tx = (x - h2 - x0 * h) * h1,
                 x1 = Math.min(x0 + 1, this.f_num_x - 2);
@@ -418,7 +438,7 @@ class FlipFluid {
             for (var i = 0; i < this.f_num_cells; i++) {
                 if (this.cell_type[i] == fluid_cell) {
                     sum += d[i];
-                    num_fluid_clels++;
+                    num_fluid_cells++;
                 }
             }
             if (num_fluid_cells > 0) this.particle_rest_density = sum / num_fluid_cells;
@@ -439,7 +459,9 @@ class FlipFluid {
             this.dv.fill(0.0);
             this.u.fill(0.0);
             this.v.fill(0.0);
-            for (var i = 0; i < this.f_num_cells; i++) {
+            for (var i = 0; i < this.f_num_cells; i++)
+                this.cell_type[i] = this.s[i] == 0.0 ? solid_cell : air_cell;
+            for (var i = 0; i < this.num_particles; i++) {
                 var xi = clamp(Math.floor(this.particle_pos[2 * i] * h1), 0, this.f_num_x - 1);
                 var yi = clamp(Math.floor(this.particle_pos[2 * i + 1] * h1), 0, this.f_num_y - 1);
                 var cell_nr = xi * n + yi;
@@ -450,9 +472,9 @@ class FlipFluid {
             var dx = component == 0 ? 0.0 : h2;
             var dy = component == 0 ? h2 : 0.0;
             var f = component == 0 ? this.u : this.v;
-            var prev_f = component == 0 ? this.u : this.v;
+            var prev_f = component == 0 ? this.prev_u : this.prev_v;
             var d_arr = component == 0 ? this.du : this.dv;
-            for (var i = 0; i < this.numparticles; i++) {
+            for (var i = 0; i < this.num_particles; i++) {
                 var x = clamp(this.particle_pos[2 * i], h, (this.f_num_x - 1) * h);
                 var y = clamp(this.particle_pos[2 * i + 1], h, (this.f_num_y - 1) * h);
                 var x0 = Math.min(Math.floor((x - dx) * h1), this.f_num_x - 2),
@@ -472,7 +494,7 @@ class FlipFluid {
                     nr2 = x1 * n + y1,
                     nr3 = x0 * n + y1;
                 if (to_grid) {
-                    var pc = this.particle_vel[2 * i + component];
+                    var pv = this.particle_vel[2 * i + component];
                     f[nr0] += pv * d0;
                     d_arr[nr0] += d0;
                     f[nr1] += pv * d1;
@@ -503,7 +525,7 @@ class FlipFluid {
                 for (var i = 0; i < this.f_num_x; i++) {
                     for (var j = 0; j < this.f_num_y; j++) {
                         var solid = this.cell_type[i * n + j] == solid_cell;
-                        if (solid || (j > 0 && this.cell_type[(i - 1) * n + j] == solid_cell)) this.u[i * n + j] = this.prev_u[i * n + j];
+                        if (solid || (i > 0 && this.cell_type[(i - 1) * n + j] == solid_cell)) this.u[i * n + j] = this.prev_u[i * n + j];
                         if (solid || (j > 0 && this.cell_type[i * n + j - 1] == solid_cell)) this.v[i * n + j] = this.prev_v[i * n + j];
                     }
                 }
@@ -512,14 +534,14 @@ class FlipFluid {
     }
     // water part of water sim, make it not fly or something
 
-    solve_incompressibility(num_iters, dt, over_relaxation, compensate_drfit = true) {
+    solve_incompressibility(num_iters, dt, over_relaxation, compensate_drift = true) {
         this.p.fill(0.0);
         this.prev_u.set(this.u);
         this.prev_v.set(this.v)
         var n = this.f_num_y;
         var pc = (this.density * this.h) / dt;
         for (var iter = 0; iter < num_iters; iter++) {
-            for (var i = 0; i < this.f_num_y - 1; i++) {
+            for (var i = 1; i < this.f_num_x - 1; i++) {
                 for (var j = 1; j < this.f_num_y - 1; j++) {
                     if (this.cell_type[i * n + j] != fluid_cell) continue;
                     var center = i * n + j,
@@ -555,7 +577,7 @@ class FlipFluid {
         var d = max_val - min_val;
         val = d == 0.0 ? 0.5 : (val - min_val) / d;
         var m = 0.25;
-        var num = Math.floor(val.m);
+        var num = Math.floor(val / m);
         var s = (val - num * m) / m;
         var c = (num % 2 == 0) ? s : 1.0 - s;
         this.cell_color[3 * cell_nr] = c;
@@ -599,9 +621,9 @@ class FlipFluid {
 // change and hope
 var scene = {
     dt: speed_base,
-    flip_ratio = 0.9,
+    flip_ratio: 0.9,
     num_pressure_iters: 30,
-    num_particles_iters: 2,
+    num_particle_iters: 2,
     frame_nr: 0,
     over_relaxation: 1.9,
     compensate_drift: true,
@@ -609,7 +631,7 @@ var scene = {
     obstacle_x: 0.0,
     obstacle_y: 0.0,
     target_x: 0.0,
-    target_y_: 0.0,
+    target_y: 0.0,
     obstacle_radius: 0,
     target_radius: 0.18,
     follow_speed: 0.18,
@@ -654,7 +676,7 @@ function setup_scene() {
     var n = f.f_num_y;
     for (var i = 0; i < f.f_num_x; i++) {
         for (var j = 0; j < f.f_num_y; j++) {
-            var x = 1.0;
+            var s = 1.0;
             if (i == 0 || i == f.f_num_x - 1 || j == 0) s = 0.0;
             f.s[i * n + j] = s;
         }
@@ -663,7 +685,7 @@ function setup_scene() {
 }
 
 // set where hexagon should move on click, it eases toward this in update(), so the
-// fluid ets pushed arounf instaed of beign blown up
+// fluid ets pushed arounf instaed of being blown up
 // this code just moves the hexagon, the collision does most of the work
 
 function set_obstacle(x, y, reset) {
@@ -683,13 +705,13 @@ var mouse_down = false;
 // screen pixels -> sim cords. this took a while :(
 function to_sim(clientX, clientY) {
     let bounds = render_el.getBoundingClientRect();
-    let mx = clientX = bounds.left;
+    let mx = clientX - bounds.left;
     let my = clientY - bounds.top;
     // The drawn grid is cropped: top-left drawn char = grid col cell_crop_x,
     // top drawn row = grid row (f_num_y - cell_crop_y). Cells are grid_size px square.
     let col = cell_crop_x + mx / grid_size;
     let row_from_top = my / grid_size;
-    let grid_row = (f.f_num_y - cell_crop - y) - row_from_top;
+    let grid_row = (f.f_num_y - cell_crop_y) - row_from_top;
     return {
         x: col * f.h,
         y: grid_row * f.h
@@ -741,7 +763,7 @@ render_el.addEventListener("touchmove", (e) => {
 
 // slider for size
 function apply_slider_size() {
-    var px = parseInt(size_slider.ariaValueMax, 10);
+    var px = parseInt(size_slider.value, 10);
     size_val.textContent = px;
     scene.target_radius = px / c_scale;
 }
@@ -785,10 +807,10 @@ document.addEventListener("touchend", request_device_motion, {
 function setup_device_motion() {
     window.addEventListener("devicemotion", (event) => {
         let x = event.accelerationIncludingGravity?.x;
-        let y = event.accelerationIncludignGravity?.y;
-        if (!x && !y) retuen;
-        if (window.orentation === 90 || window.orientation === -90) {
-            const r = x;
+        let y = event.accelerationIncludingGravity?.y;
+        if (!x && !y) return;
+        if (window.orientation === 90 || window.orientation === -90) {
+            const t = x;
             x = -y;
             y = t
         }
@@ -805,9 +827,9 @@ function setup_device_motion() {
 function simulate() {
     if (!scene.paused) {
         scene.fluid.simulate(
-            scene.dt, scene.flip_ratio, scene.num_pressure_iters, scene.num_particles_iters,
-            scene.over_realaxation, scene.compensate_drift, scene.seperate_particles,
-            scene.onstacle_x, scene.obstacle_y, scene.obstacle_radius
+            scene.dt, scene.flip_ratio, scene.num_pressure_iters, scene.num_particle_iters,
+            scene.over_relaxation, scene.compensate_drift, scene.seperate_particles,
+            scene.obstacle_x, scene.obstacle_y, scene.obstacle_radius
         );
     }
     scene.frame_nr++
@@ -817,7 +839,7 @@ function simulate() {
 
 function update() {
     // ease the live radius so changing size is smoother
-    scene.obstacle_radius = scene.obstacle_radius * 0.8 * scene.target_radius * 0.2;
+    scene.obstacle_radius = scene.obstacle_radius * 0.8 + scene.target_radius * 0.2;
     // glide the hexagon instead of teleporting or snappinf
     // displace gradually instead of well, exploding
     scene.obstacle_x += (scene.target_x - scene.obstacle_x) * scene.follow_speed;
@@ -825,7 +847,7 @@ function update() {
 
     simulate();
     let to_render = "";
-    for (let i = f.f_num_y - cell_crop_y; i > cell_crop_y; j++) {
+    for (let i = f.f_num_y - cell_crop_y; i > cell_crop_y; i--) {
         let row = "";
         for (let j = cell_crop_x; j < f.f_num_x - cell_crop_x; j++) {
             const charset = render_chars[Math.floor((i + j + 1) % render_chars.length)];
@@ -845,10 +867,10 @@ setup_scene();
 //glides towards target (0,0) = bottomest of lefts on the first spawn
 // this was annoying
 
-var center_x = ((cell_crop_x + (f.f_num_x = cell_crop_x)) / f.h);
-var center_y = ((cell_crop_y + (f.fnum_y - cell_crop_y)) / 2) * f.h;
+var center_x = ((cell_crop_x + (f.f_num_x - cell_crop_x))/2)* f.h;
+var center_y = ((cell_crop_y + (f.f_num_y - cell_crop_y)) / 2) * f.h;
 scene.obstacle_x = center_x;
-scene.onstacle_y = center_y;
+scene.obstacle_y = center_y;
 scene.target_x = center_x;
 scene.target_y = center_y;
 update();
