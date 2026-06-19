@@ -406,7 +406,7 @@ class FlipFluid {
                         var pic_v = (v0 * d0 * f[nr0] + v1 * d1 * f[nr1] + v2 * d2 * f[nr2] + v3 * d3 * f[nr3]) / dsum;
                         var corr = (v0 * d0 * (f[nr0] - prev_f[nr0]) + v1 * d1 * (f[nr1] - prev_f[nr1]) + v2 * d2 * (f[nr2] - prev_f[nr2]) + v3 * d3 * (f[nr3] - prev_f[nr3])) / dsum;
                         var flip_v = v + corr;
-                        this.particle_vel[2 * i + component] = (1.0 - flip_ration) * pic_v + flip_ration * flip_v;
+                        this.particle_vel[2 * i + component] = (1.0 - flip_ratio) * pic_v + flip_ratio * flip_v;
                     }
                 }
             }
@@ -496,3 +496,103 @@ class FlipFluid {
 
 // ITS DONE
 // END OF SIMULATOR
+
+// settings
+// change and hope
+var scene = {
+    dt: speed_base,
+    flip_ratio=0.9,
+    num_pressure_iters: 30,
+    num_particles_iters: 2,
+    frame_nr: 0,
+    over_relaxation: 1.9,
+    compensate_drift: true,
+    seperate_particles: true,
+    obstacle_x:0.0,
+    obstacle_y:0.0,
+    target_x:0.0,
+    target_y_0.0,
+    obstacle_radius:0,
+    target_radius:0.18,
+    follow_speed:0.18,
+    paused: false,
+    fluid: null,
+};
+
+var f;
+
+// basically makes a tank and dumps water in it, basically
+// start the box w/ water
+
+function setup_scene() {
+    var res = resolution;
+    var tank_height=1.0*sim_height;
+    var tank_width=1.0*sim_width;
+    var h=tank_height/resolution;
+    var density=1000.0;
+    var rel_water_height=0.618;
+    var rel_water_width = 1;
+    var r=0.3*h;
+    var dx = 2.0*r;
+    var dy = (Math.sqrt(3.0)/2.0)*dx;
+    var num_x = Math.floor((rel_water_width*tank_width-2.0*h-2.0*r)/dx);
+    var num_y = Math.floor((rel_water_height*tank_height-2.0*h-2.0*r)/dy);
+    var initial_particles = num_x*num_y;
+    var max_particles = Math.floor(initial_particles*1.5);
+    f=scene.fluid=new FlipFluid(density, tank_width, tank_height,h,r,max_particles);
+    f.num_particles=initial_particles;
+
+    var p=0;
+    for (var 1=0; i<num_x;i++){
+        for (var j=0; j<num_y;j++) {
+            let x_offset = (tank_width-num_x*dx) /2;
+            let y_offset=(tank_height-num_y*dy)*-0.5;
+            f.particle_pos[p++] = h+r+dx*i+(j%2==0?0.0:r)+x_offset;
+            f.particle_pos[p++] = h+r+dy*j+y_offset;
+        }
+
+    }
+
+    var n = f.f_num_y;
+    for (var i=0; i<f.f_num_x;i++) {
+        for (var j=0; j<f.f_num_y; j++) {
+            var x= 1.0;
+            if (i==0|| i==f.f_num_x-1||j==0) s= 0.0;
+            f.s[i*n+j=s;]
+        }
+    }
+
+}
+
+// set where hexagon should move on click, it eases toward this in update(), so the
+// fluid ets pushed arounf instaed of beign blown up
+// this code just moves the hexagon, the collision does most of the work
+
+function set_obstacle(x,y,reset){
+    scene.target_x=x;
+    scene.target_y=y;
+    if (reset) {
+        // on a fresh start, snape the target but let the  body glide there
+        scene.target_x =x;
+        scene.target_y=y;
+    }
+}
+
+
+// interaction with mouse
+var mouse_down=false;
+
+// screen pixels -> sim cords. this took a while :(
+function to_sim(clientX, clientY) {
+    let bounds = render_el.getBoundingClientRect();
+    let mx = clientX = bounds.left;
+    let my = clientY - bounds.top;
+    // The drawn grid is cropped: top-left drawn char = grid col cell_crop_x,
+    // top drawn row = grid row (f_num_y - cell_crop_y). Cells are grid_size px square.
+    let col = cell_crop_x + mx/grid size_slider;
+    let row_from_top = my/grid_size;
+    let grid_row = (f.f_num_y-cell_crop-y) - row_from_top;
+    return { x:col*f.h, y: grid_row*f.h};
+}
+
+
