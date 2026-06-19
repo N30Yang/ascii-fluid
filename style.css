@@ -20,6 +20,7 @@ canvas {
     position: fixed;
     top: 0;
     left: 0;
+    pointer-events: none;
 }
 
 .render {
@@ -96,4 +97,40 @@ canvas {
     width: 40vw;
     max-width: 320px;
     accent-color: #00ffff;
+}
+
+.hotkeys {
+    position: fixed;
+    bottom: 1em;
+    left: 1em;
+    z-index: 100;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: var(--cell-size);
+    line-height: var(--cell-size);
+    font-weight: 700;
+}
+
+.hotkeys .info-label {
+    display: inline-block;
+    background: black;
+    padding: 0.3em 0.5em;
+    margin-bottom: 0.3em;
+}
+
+#errbox {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    margin: 0;
+    padding: 1em;
+    background: #300;
+    color: #f55;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    font-family: monospace;
 }
