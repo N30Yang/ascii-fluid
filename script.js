@@ -766,7 +766,7 @@ window.addEventListener("resize", () => {
 // device tilt!!!!
 
 async function request_device_motion() {
-    if (typeof DeviceMotionEvent ? .requestPermission === "function") {
+    if (typeof DeviceMotionEvent?.requestPermission === "function") {
         try {
             const permission = await DeviceMotionEvent.requestPermission();
             if (permission === "granted") setup_device_motion();
