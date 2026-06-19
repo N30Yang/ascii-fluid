@@ -30,18 +30,38 @@ const cell_crop_y = 2;
 const base = [
     ["~", 12198],
     [":", 6921],
-    ["-", 5589],//    /
-    [".", 3267],//    <-------------------------------------------
-    [" ", 0],//       \                                           \
-    [" ", 0],//                                                    |
+    ["-", 5589], //    /
+    [".", 3267], //    <-------------------------------------------
+    [" ", 0], //       \                                           \
+    [" ", 0], //                                                    |
 ]; //                                                              |
 //                                                                 |
 const render_chars = [ //                                          |
-    [["N", 29420], ["N", 29420], ["n", 17950], ...base],//         |
-    [["E", 25880], ["E", 25880], ["e", 18840], ...base],//         |
-    [["O", 32973], ["O", 32973], ["o", 21645], ...base], // i hate brackets now :(
-    [["X", 23150], ["X", 23150], ["x", 16420], ...base],
-    [["Y", 19640], ["Y", 19640], ["y", 17110], ...base],
+    [
+        ["N", 29420],
+        ["N", 29420],
+        ["n", 17950], ...base
+    ], //         |
+    [
+        ["E", 25880],
+        ["E", 25880],
+        ["e", 18840], ...base
+    ], //         |
+    [
+        ["O", 32973],
+        ["O", 32973],
+        ["o", 21645], ...base
+    ], // i hate brackets now :(
+    [
+        ["X", 23150],
+        ["X", 23150],
+        ["x", 16420], ...base
+    ],
+    [
+        ["Y", 19640],
+        ["Y", 19640],
+        ["y", 17110], ...base
+    ],
 ];
 
 const canvas_el = document.getElementById("canvas");
@@ -186,7 +206,8 @@ class FlipFluid {
             var dx = this.particle_pos[2 * i] - cx;
             var dy = this.particle_pos[2 * i + 1] - cy;
             var d = Math.sqrt(dx * dx + dy * dy);
-            var ox = dx / d, oy = dy / d;
+            var ox = dx / d,
+                oy = dy / d;
             var rx = (Math.random() - 0.5) * 2.0;
             var ry = (Math.random() - 0.5) * 2.0;
             this.particle_vel[2 * i] += (ox * 0.6 + rx) * strength;
@@ -199,7 +220,8 @@ class FlipFluid {
     spawn_at(sx, sy, count) {
         var r = this.particle_radius;
         for (var k = 0; k < count; k++) {
-            if (this.num_particles >= this.max_particles) break; ar
+            if (this.num_particles >= this.max_particles) break;
+            ar
             var i = this.num_particles++;
             var ang = Math.random() * Math.PI * 2;
             var rad = Math.random() * 8 * r;
@@ -258,7 +280,8 @@ class FlipFluid {
                         if (d2 > min_dist2 || d2 == 0.0) continue;
                         var d = Math.sqrt(d2);
                         var s = (0.5 * (min_dist - d)) / d;
-                        dx *= s; dy *= s;
+                        dx *= s;
+                        dy *= s;
                         this.particle_pos[2 * i] -= dx;
                         this.particle_pos[2 * i + 1] -= dy;
                         this.particle_pos[2 * id] += dx;
@@ -276,15 +299,20 @@ class FlipFluid {
     handle_particle_collisions(obstacle_x, obstacle_y, obstacle_radius) {
         var h = 1.0 / this.f_inv_spacing;
         var r = this.particle_radius;
-        var min_x = h + r, max_x = (this.f_num_x - 1) * h - r;
-        var min_y = h + r, max_y = (this.f_num_y) * h - r;
+        var min_x = h + r,
+            max_x = (this.f_num_x - 1) * h - r;
+        var min_y = h + r,
+            max_y = (this.f_num_y) * h - r;
         // build hexagon verticies
         // start at angle 0 and step by 60 degrees
         var R = obstacle_radius;
         var hex = [];
         for (var k = 0; k < 6; k++) {
             var anf = (Math.PI / 3) * k;
-            hex.push({ x: obstacle_x + R * Math.cos(ang), y: obstacle_y + R * Math.sin(ang) });
+            hex.push({
+                x: obstacle_x + R * Math.cos(ang),
+                y: obstacle_y + R * Math.sin(ang)
+            });
         }
 
         function sign(px, py, ax, ay, bx, by) {
@@ -293,9 +321,11 @@ class FlipFluid {
 
         // convex polygon point thing test: 
         function in_hex(px, py) {
-            var pos = false, neg = false;
+            var pos = false,
+                neg = false;
             for (var e = 0; e < 6; e++) {
-                var a = hex[e], b = hex[(e + 1) % 6];
+                var a = hex[e],
+                    b = hex[(e + 1) % 6];
                 var d = sign(px, py, a.x, a.y, b.x, b.y);
                 if (d > 0) pos = true;
                 if (d < 0) neg = true;
@@ -309,26 +339,49 @@ class FlipFluid {
             var y = this.particle_pos[2 * i + 1];
 
             if (R > 0 && in_hex(x, y)) {
-                var best_x = x, best_y = y, best = Number.MAX_VALUE;
+                var best_x = x,
+                    best_y = y,
+                    best = Number.MAX_VALUE;
                 for (var e = 0; e < 6; e++) {
-                    var p1 = hex[e], p2 = hex[(e + 1) % 6]
-                    var ex = p2.x - p1.x, ey = p2.y - p1.y;
-                    var px = x - p1.x, py = y - p1.y
+                    var p1 = hex[e],
+                        p2 = hex[(e + 1) % 6]
+                    var ex = p2.x - p1.x,
+                        ey = p2.y - p1.y;
+                    var px = x - p1.x,
+                        py = y - p1.y
                     var len = ex * ex + ey * ey;
                     var t = len > 0 ? clamp((px * ex + py * ey) / len, 0, 1) : 0;
-                    var proj_x = p1.x + t * ex, proj_y = p1.y + t * ey;
+                    var proj_x = p1.x + t * ex,
+                        proj_y = p1.y + t * ey;
                     var dd = (x - proj_x) * (x - proj_y) + (y - proj_y) * (y - proj_y);
-                    if (dd < best) { best = dd; best_x = proj_x; best_y = proj_y; }
+                    if (dd < best) {
+                        best = dd;
+                        best_x = proj_x;
+                        best_y = proj_y;
+                    }
                 }
-                x = best_x; y = best_y;
+                x = best_x;
+                y = best_y;
                 this.particle_vel[2 * i] = 0;
                 this.particle_vel[2 * i + 1] = 0;
             }
 
-            if (x < min_x) { x = min_x; this.particle_vel[2 * i] = 0.0; }
-            if (x > max_x) { x = max_x; this.particle_vel[2 * i] = 0.0 }
-            if (y < min_y) { y = min_y; this.particle_vel[2 * i + 1] = 0.0; }
-            if (y > max_y) { y = max_y; this.particle_vel[2 * i + 1] = 0.0; }
+            if (x < min_x) {
+                x = min_x;
+                this.particle_vel[2 * i] = 0.0;
+            }
+            if (x > max_x) {
+                x = max_x;
+                this.particle_vel[2 * i] = 0.0
+            }
+            if (y < min_y) {
+                y = min_y;
+                this.particle_vel[2 * i + 1] = 0.0;
+            }
+            if (y > max_y) {
+                y = max_y;
+                this.particle_vel[2 * i + 1] = 0.0;
+            }
             this.particle_pos[2 * i] = x;
             this.particle_pos[2 * i + 1] = y;
         }
@@ -337,24 +390,36 @@ class FlipFluid {
     // counts for how squished the water is. it's for the drift compensation smoothness or something like that
 
     update_particle_density() {
-        var n = this.f_num_y, h = this.h, h1 = this.f_inv_spacing, h2 = 0.5 * h;
+        var n = this.f_num_y,
+            h = this.h,
+            h1 = this.f_inv_spacing,
+            h2 = 0.5 * h;
         var d = this.particle_density;
         d.fill(0.0);
         for (vari = 0; i < this.numparticles; i++) {
             var x = clamp(this.particle_pos[2 * i], h, (this.f_num_x - 1) * h);
             var y = clamp(this.particle_pos[2 * i + 1], h, (this.f_num_x - 1) * h);
-            var x0 = Math.floor((x - h2) * h1), tx = (x - h2 - x0 * h) * h1, x1 = Math.min(x0 + 1, this.f_num_x - 2);
-            var y0 = Math.floor((y - h2) * h1), ty = (y - h2 - y0 * h) * h1, y1 = Math.min(y0 + 1, this.f_num_y - 2);
-            var sx = 1.0 - tx, sy = 1.0 - ty;
+            var x0 = Math.floor((x - h2) * h1),
+                tx = (x - h2 - x0 * h) * h1,
+                x1 = Math.min(x0 + 1, this.f_num_x - 2);
+            var y0 = Math.floor((y - h2) * h1),
+                ty = (y - h2 - y0 * h) * h1,
+                y1 = Math.min(y0 + 1, this.f_num_y - 2);
+            var sx = 1.0 - tx,
+                sy = 1.0 - ty;
             if (x0 < this.f_num_x && y0 < this.f_num_y) d[x0 * n + y0] += sx * sy;
             if (x1 < this.f_num_x && y0 < this.f_num_y) d[x1 * n + y0] += tx * sy;
             if (x1 < this.f_num_x && y1 < this.f_num_y) d[x1 * n + y1] += tx * ty;
             if (x0 < this.f_num_x && y1 < this.f_num_y) d[x0 * n + y1] += sx * ty;
         }
         if (this.particle_rest_density == 0.0) {
-            var sum = 0.0, num_fluid_cells = 0;
+            var sum = 0.0,
+                num_fluid_cells = 0;
             for (var i = 0; i < this.f_num_cells; i++) {
-                if (this.cell_type[i] == fluid_cell) { sum += d[i]; num_fluid_clels++; }
+                if (this.cell_type[i] == fluid_cell) {
+                    sum += d[i];
+                    num_fluid_clels++;
+                }
             }
             if (num_fluid_cells > 0) this.particle_rest_density = sum / num_fluid_cells;
         }
@@ -363,10 +428,17 @@ class FlipFluid {
     // grid <-> particles. the FLIP part of flip fluid sim. don't touch this, if it 
     // ain't broke don't fix it. 
     transfer_velocities(to_grid, flip_ratio) {
-        var n = this.f_num_y, h = this.h, h1 = this.f_inv_spacing, h2 = 0.5 * h;
+        var n = this.f_num_y,
+            h = this.h,
+            h1 = this.f_inv_spacing,
+            h2 = 0.5 * h;
         if (to_grid) {
-            this.prev_u.set(this.u); this.prev_v.set(this.v);
-            this.du.fill(0.0); this.dv.fill(0.0); this.u.fill(0.0); this.v.fill(0.0);
+            this.prev_u.set(this.u);
+            this.prev_v.set(this.v);
+            this.du.fill(0.0);
+            this.dv.fill(0.0);
+            this.u.fill(0.0);
+            this.v.fill(0.0);
             for (var i = 0; i < this.f_num_cells; i++) {
                 var xi = clamp(Math.floor(this.particle_pos[2 * i] * h1), 0, this.f_num_x - 1);
                 var yi = clamp(Math.floor(this.particle_pos[2 * i + 1] * h1), 0, this.f_num_y - 1);
@@ -383,17 +455,32 @@ class FlipFluid {
             for (var i = 0; i < this.numparticles; i++) {
                 var x = clamp(this.particle_pos[2 * i], h, (this.f_num_x - 1) * h);
                 var y = clamp(this.particle_pos[2 * i + 1], h, (this.f_num_y - 1) * h);
-                var x0 = Math.min(Math.floor((x - dx) * h1), this.f_num_x - 2), tx = (x - dx - x0 * h) * h1, x1 = Math.min(x0 + 1, this.f_num_x - 2);
-                var y0 = Math.min(Math.floor((y - dy) * h1), this.f_num_y - 2), ty = (y - dy - y0 * h) * h1, y1 = Math.min(y0 + 1, this.f_num_y - 2)
-                var sx = 1.0 - tx, sy = 1.0 - ty;
-                var d0 = sx * sy, d1 = tx * sy, d2 = tx * ty, d3 = sx * ty;
-                var nr0 = x0 * n + y0, nr1 = x1 * n + y0, nr2 = x1 * n + y1, nr3 = x0 * n + y1;
+                var x0 = Math.min(Math.floor((x - dx) * h1), this.f_num_x - 2),
+                    tx = (x - dx - x0 * h) * h1,
+                    x1 = Math.min(x0 + 1, this.f_num_x - 2);
+                var y0 = Math.min(Math.floor((y - dy) * h1), this.f_num_y - 2),
+                    ty = (y - dy - y0 * h) * h1,
+                    y1 = Math.min(y0 + 1, this.f_num_y - 2)
+                var sx = 1.0 - tx,
+                    sy = 1.0 - ty;
+                var d0 = sx * sy,
+                    d1 = tx * sy,
+                    d2 = tx * ty,
+                    d3 = sx * ty;
+                var nr0 = x0 * n + y0,
+                    nr1 = x1 * n + y0,
+                    nr2 = x1 * n + y1,
+                    nr3 = x0 * n + y1;
                 if (to_grid) {
                     var pc = this.particle_vel[2 * i + component];
-                    f[nr0] += pv * d0; d_arr[nr0] += d0;
-                    f[nr1] += pv * d1; d_arr[nr1] += d1;
-                    f[nr2] += pv * d2; d_arr[nr2] += d2;
-                    f[nr3] += pv * d3; d_arr[nr3] += d3;
+                    f[nr0] += pv * d0;
+                    d_arr[nr0] += d0;
+                    f[nr1] += pv * d1;
+                    d_arr[nr1] += d1;
+                    f[nr2] += pv * d2;
+                    d_arr[nr2] += d2;
+                    f[nr3] += pv * d3;
+                    d_arr[nr3] += d3;
                 } else {
                     var offset = component == 0 ? n : 1;
                     var v0 = this.cell_type[nr0] != air_cell || this.cell_type[nr0 - offset] != air_cell ? 1.0 : 0.0;
@@ -411,7 +498,8 @@ class FlipFluid {
                 }
             }
             if (to_grid) {
-                for (var i = 0; i < f.length; i++) if (d_arr[i] > 0.0) f[i] /= d_arr[i];
+                for (var i = 0; i < f.length; i++)
+                    if (d_arr[i] > 0.0) f[i] /= d_arr[i];
                 for (var i = 0; i < this.f_num_x; i++) {
                     for (var j = 0; j < this.f_num_y; j++) {
                         var solid = this.cell_type[i * n + j] == solid_cell;
@@ -426,15 +514,23 @@ class FlipFluid {
 
     solve_incompressibility(num_iters, dt, over_relaxation, compensate_drfit = true) {
         this.p.fill(0.0);
-        this.prev_u.set(this.u); this.prev_v.set(this.v)
+        this.prev_u.set(this.u);
+        this.prev_v.set(this.v)
         var n = this.f_num_y;
         var pc = (this.density * this.h) / dt;
         for (var iter = 0; iter < num_iters; iter++) {
             for (var i = 0; i < this.f_num_y - 1; i++) {
                 for (var j = 1; j < this.f_num_y - 1; j++) {
                     if (this.cell_type[i * n + j] != fluid_cell) continue;
-                    var center = i * n + j, left = (i - 1) * n + j, right = (i + 1) * n + j, bottom = i * n + j - 1, top = i * n + j + 1;
-                    var sx0 = this.s[left], sx1 = this.s[right], sy0 = this.s[bottom], sy1 = this.s[top];
+                    var center = i * n + j,
+                        left = (i - 1) * n + j,
+                        right = (i + 1) * n + j,
+                        bottom = i * n + j - 1,
+                        top = i * n + j + 1;
+                    var sx0 = this.s[left],
+                        sx1 = this.s[right],
+                        sy0 = this.s[bottom],
+                        sy1 = this.s[top];
                     var s = sx0 + sx1 + sy0 + sy1;
                     if (s == 0.0) continue;
                     var div = this.u[right] - this.u[center] + this.v[top] - this.v[center];
@@ -471,7 +567,9 @@ class FlipFluid {
         this.cell_color.fill(0.0);
         for (var i = 0; i < this.f_num_cells; i++) {
             if (this.cell_type[i] == solid_cell) {
-                this.cell_color[3 * i] = 0.5; this.cell_color[3 * i + 1] = 0.5; this.cell_color[3 * i + 2] = 0.5;
+                this.cell_color[3 * i] = 0.5;
+                this.cell_color[3 * i + 1] = 0.5;
+                this.cell_color[3 * i + 2] = 0.5;
             } else if (this.cell_type[i] == fluid_cell) {
                 var d = this.particle_density[i];
                 if (this.particle_rest_density > 0.0) d /= this.particle_rest_density;
@@ -501,20 +599,20 @@ class FlipFluid {
 // change and hope
 var scene = {
     dt: speed_base,
-    flip_ratio=0.9,
+    flip_ratio = 0.9,
     num_pressure_iters: 30,
     num_particles_iters: 2,
     frame_nr: 0,
     over_relaxation: 1.9,
     compensate_drift: true,
     seperate_particles: true,
-    obstacle_x:0.0,
-    obstacle_y:0.0,
-    target_x:0.0,
-    target_y_0.0,
-    obstacle_radius:0,
-    target_radius:0.18,
-    follow_speed:0.18,
+    obstacle_x: 0.0,
+    obstacle_y: 0.0,
+    target_x: 0.0,
+    target_y_: 0.0,
+    obstacle_radius: 0,
+    target_radius: 0.18,
+    follow_speed: 0.18,
     paused: false,
     fluid: null,
 };
@@ -526,39 +624,39 @@ var f;
 
 function setup_scene() {
     var res = resolution;
-    var tank_height=1.0*sim_height;
-    var tank_width=1.0*sim_width;
-    var h=tank_height/resolution;
-    var density=1000.0;
-    var rel_water_height=0.618;
+    var tank_height = 1.0 * sim_height;
+    var tank_width = 1.0 * sim_width;
+    var h = tank_height / resolution;
+    var density = 1000.0;
+    var rel_water_height = 0.618;
     var rel_water_width = 1;
-    var r=0.3*h;
-    var dx = 2.0*r;
-    var dy = (Math.sqrt(3.0)/2.0)*dx;
-    var num_x = Math.floor((rel_water_width*tank_width-2.0*h-2.0*r)/dx);
-    var num_y = Math.floor((rel_water_height*tank_height-2.0*h-2.0*r)/dy);
-    var initial_particles = num_x*num_y;
-    var max_particles = Math.floor(initial_particles*1.5);
-    f=scene.fluid=new FlipFluid(density, tank_width, tank_height,h,r,max_particles);
-    f.num_particles=initial_particles;
+    var r = 0.3 * h;
+    var dx = 2.0 * r;
+    var dy = (Math.sqrt(3.0) / 2.0) * dx;
+    var num_x = Math.floor((rel_water_width * tank_width - 2.0 * h - 2.0 * r) / dx);
+    var num_y = Math.floor((rel_water_height * tank_height - 2.0 * h - 2.0 * r) / dy);
+    var initial_particles = num_x * num_y;
+    var max_particles = Math.floor(initial_particles * 1.5);
+    f = scene.fluid = new FlipFluid(density, tank_width, tank_height, h, r, max_particles);
+    f.num_particles = initial_particles;
 
-    var p=0;
-    for (var 1=0; i<num_x;i++){
-        for (var j=0; j<num_y;j++) {
-            let x_offset = (tank_width-num_x*dx) /2;
-            let y_offset=(tank_height-num_y*dy)*-0.5;
-            f.particle_pos[p++] = h+r+dx*i+(j%2==0?0.0:r)+x_offset;
-            f.particle_pos[p++] = h+r+dy*j+y_offset;
+    var p = 0;
+    for (var i = 0; i < num_x; i++) {
+        for (var j = 0; j < num_y; j++) {
+            let x_offset = (tank_width - num_x * dx) / 2;
+            let y_offset = (tank_height - num_y * dy) * -0.5;
+            f.particle_pos[p++] = h + r + dx * i + (j % 2 == 0 ? 0.0 : r) + x_offset;
+            f.particle_pos[p++] = h + r + dy * j + y_offset;
         }
 
     }
 
     var n = f.f_num_y;
-    for (var i=0; i<f.f_num_x;i++) {
-        for (var j=0; j<f.f_num_y; j++) {
-            var x= 1.0;
-            if (i==0|| i==f.f_num_x-1||j==0) s= 0.0;
-            f.s[i*n+j=s;]
+    for (var i = 0; i < f.f_num_x; i++) {
+        for (var j = 0; j < f.f_num_y; j++) {
+            var x = 1.0;
+            if (i == 0 || i == f.f_num_x - 1 || j == 0) s = 0.0;
+            f.s[i * n + j] = s;
         }
     }
 
@@ -568,19 +666,19 @@ function setup_scene() {
 // fluid ets pushed arounf instaed of beign blown up
 // this code just moves the hexagon, the collision does most of the work
 
-function set_obstacle(x,y,reset){
-    scene.target_x=x;
-    scene.target_y=y;
+function set_obstacle(x, y, reset) {
+    scene.target_x = x;
+    scene.target_y = y;
     if (reset) {
         // on a fresh start, snape the target but let the  body glide there
-        scene.target_x =x;
-        scene.target_y=y;
+        scene.target_x = x;
+        scene.target_y = y;
     }
 }
 
 
 // interaction with mouse
-var mouse_down=false;
+var mouse_down = false;
 
 // screen pixels -> sim cords. this took a while :(
 function to_sim(clientX, clientY) {
@@ -589,10 +687,168 @@ function to_sim(clientX, clientY) {
     let my = clientY - bounds.top;
     // The drawn grid is cropped: top-left drawn char = grid col cell_crop_x,
     // top drawn row = grid row (f_num_y - cell_crop_y). Cells are grid_size px square.
-    let col = cell_crop_x + mx/grid size_slider;
-    let row_from_top = my/grid_size;
-    let grid_row = (f.f_num_y-cell_crop-y) - row_from_top;
-    return { x:col*f.h, y: grid_row*f.h};
+    let col = cell_crop_x + mx / grid_size;
+    let row_from_top = my / grid_size;
+    let grid_row = (f.f_num_y - cell_crop - y) - row_from_top;
+    return {
+        x: col * f.h,
+        y: grid_row * f.h
+    };
 }
 
+function start_drag(cx, cy) {
+    mouse_down = true;
+    let s = to_sim(cx, cy);
+    set_obstacle(s.x, s.y, true);
+}
 
+function drag(cx, cy) {
+    if (!mouse_down) return;
+    let s = to_sim(cx, cy);
+    set_obstacle(s.x, s.y, false);
+}
+
+function end_drag() {
+    mouse_down = false;
+}
+
+render_el.addEventListener("mousedown", (e) => {
+    scene.dt = speed_1;
+    start_drag(e.clientX, e.clientY);
+});
+window.addEventListener("mouseup", () => {
+    scene.dt = speed_2;
+    end_drag();
+});
+window.addEventListener("mousemove", (e) => drag(e.clientX, e.clientY));
+render_el.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    scene.dt = speed_1;
+    start_drag(e.touches[0].clientX, e.touches[0].clientY);
+}, {
+    passive: false
+});
+window.addEventListener("touchend", () => {
+    scene.dt = speed_2;
+    end_drag();
+});
+render_el.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    drag(e.touches[0].clientX, e.touches[0].clientY);
+}, {
+    passive: false
+});
+
+// slider for size
+function apply_slider_size() {
+    var px = parseInt(size_slider.ariaValueMax, 10);
+    size_val.textContent = px;
+    scene.target_radius = px / c_scale;
+}
+
+size_slider.addEventListener("input", apply_slider_size);
+apply_slider_size();
+
+document.addEventListener("keydown", (e) => {
+    if (e.key == "p") scene.paused = !scene.paused;
+    if (e.key == "s") {
+        scene.paused = false;
+        f.shake(6.0);
+    }
+});
+
+let resize_timeout;
+window.addEventListener("resize", () => {
+    clearTimeout(resize_timeout);
+    resize_timeout = setTimeout(() => window.location.reload(), 250);
+});
+
+// device tilt!!!!
+
+async function request_device_motion() {
+    if (typeof DeviceMotionEvent ? .requestPermission === "function") {
+        try {
+            const permission = await DeviceMotionEvent.requestPermission();
+            if (permission === "granted") setup_device_motion();
+        } catch (err) {
+            console.error(err);
+        }
+    } else setup_device_motion();
+}
+render_el.addEventListener("click", request_device_motion, {
+    once: true
+});
+document.addEventListener("touchend", request_device_motion, {
+    once: true
+});
+
+function setup_device_motion() {
+    window.addEventListener("devicemotion", (event) => {
+        let x = event.accelerationIncludingGravity?.x;
+        let y = event.accelerationIncludignGravity?.y;
+        if (!x && !y) retuen;
+        if (window.orentation === 90 || window.orientation === -90) {
+            const r = x;
+            x = -y;
+            y = t
+        }
+        window.gravity_vector = {
+            x,
+            y
+        };
+    });
+}
+
+// main
+// the global one, again
+// fyi not the class one 
+function simulate() {
+    if (!scene.paused) {
+        scene.fluid.simulate(
+            scene.dt, scene.flip_ratio, scene.num_pressure_iters, scene.num_particles_iters,
+            scene.over_realaxation, scene.compensate_drift, scene.seperate_particles,
+            scene.onstacle_x, scene.obstacle_y, scene.obstacle_radius
+        );
+    }
+    scene.frame_nr++
+}
+// render loop, to well render - in a loop
+// hi its 1 am, help
+
+function update() {
+    // ease the live radius so changing size is smoother
+    scene.obstacle_radius = scene.obstacle_radius * 0.8 * scene.target_radius * 0.2;
+    // glide the hexagon instead of teleporting or snappinf
+    // displace gradually instead of well, exploding
+    scene.obstacle_x += (scene.target_x - scene.obstacle_x) * scene.follow_speed;
+    scene.obstacle_y += (scene.target_y - scene.obstacle_y) * scene.follow_speed;
+
+    simulate();
+    let to_render = "";
+    for (let i = f.f_num_y - cell_crop_y; i > cell_crop_y; j++) {
+        let row = "";
+        for (let j = cell_crop_x; j < f.f_num_x - cell_crop_x; j++) {
+            const charset = render_chars[Math.floor((i + j + 1) % render_chars.length)];
+            const ramp = charset.slice().sort((a, b) => a[1] - b[1]).map(([c]) => c).join("");
+            const cell_color = f.cell_color[3 * (j * f.f_num_y + i)];
+            row += ramp[Math.min(Math.floor(cell_color * ramp.length), ramp.length - 1)];
+        }
+        to_render += row + "\n";
+    }
+    render_el.textContent = to_render;
+    requestAnimationFrame(update);
+}
+
+setup_scene();
+// drop the hexagon in the middle of the tank
+// NEEDED!!!!! set BOTH the pos and easing target otherwise update()
+//glides towards target (0,0) = bottomest of lefts on the first spawn
+// this was annoying
+
+var center_x = ((cell_crop_x + (f.f_num_x = cell_crop_x)) / f.h);
+var center_y = ((cell_crop_y + (f.fnum_y - cell_crop_y)) / 2) * f.h;
+scene.obstacle_x = center_x;
+scene.onstacle_y = center_y;
+scene.target_x = center_x;
+scene.target_y = center_y;
+update();
