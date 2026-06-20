@@ -1,5 +1,5 @@
 /*
-Hi everybody !!!! this is one of my first fluid sima 
+Hi everybody !!!! this is one of my first fluid sim
 actually this is my first and also first project in js sooo this might be a bit ugly
 
 Im Neo and this is for hack club horizons
@@ -787,40 +787,63 @@ window.addEventListener("resize", () => {
 
 // device tilt!!!!
 
+var motion_ready = false; // so we only set up the listener once
+
 async function request_device_motion() {
-    if (typeof DeviceMotionEvent?.requestPermission === "function") {
+    if (motion_ready) return;
+    // iOS 13+ : must ask permission, and it MUST happen inside a tap
+    if (typeof DeviceMotionEvent !== "undefined" &&
+        typeof DeviceMotionEvent.requestPermission === "function") {
         try {
             const permission = await DeviceMotionEvent.requestPermission();
             if (permission === "granted") setup_device_motion();
         } catch (err) {
             console.error(err);
         }
-    } else setup_device_motion();
+    } else {
+        // android / everything else: no permission needed, just go
+        setup_device_motion();
+    }
 }
-render_el.addEventListener("click", request_device_motion, {
-    once: true
-});
-document.addEventListener("touchend", request_device_motion, {
-    once: true
-});
+// listen on a few gesture types so iphone actually fires it (click can be flaky on touch)
+render_el.addEventListener("pointerdown", request_device_motion, { once: true });
+render_el.addEventListener("touchstart", request_device_motion, { once: true });
+render_el.addEventListener("click", request_device_motion, { once: true });
+document.addEventListener("touchend", request_device_motion, { once: true });
 
 function setup_device_motion() {
+    if (motion_ready) return;
+    motion_ready = true;
     window.addEventListener("devicemotion", (event) => {
-        let x = event.accelerationIncludingGravity?.x;
-        let y = event.accelerationIncludingGravity?.y;
-        if (!x && !y) return;
-        if (window.orientation === 90 || window.orientation === -90) {
-            const t = x;
-            x = -y;
-            y = t
-        }
-        window.gravity_vector = {
-            x,
-            y
-        };
-    });
-}
+        var acc = event.accelerationIncludingGravity;
+        if (!acc) return;
+        var x = acc.x;
+        var y = acc.y;
+        if (x == null && y == null) return;
 
+        // iOS reports accelerationIncludingGravity with the OPPOSITE sign to
+        // Android (apple flips it). detect ios and flip so both fall the same way.
+        var is_ios = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        if (is_ios) { x = -x; y = -y; }
+
+        // our sim's Y points UP and normal gravity is negative (down). the sensor's
+        // y is "south->north" which is the opposite of screen-down, so negate y to
+        // make the fluid pool toward the low edge instead of upside down.
+        var gx = x;
+        var gy = -y;
+
+        // landscape: the device axes are fixed to the hardware, but the screen
+        // rotated 90deg, so swap/negate to match what the user sees.
+        if (window.orientation === 90) {
+            var t = gx; gx = gy; gy = -t;
+        } else if (window.orientation === -90) {
+            var t2 = gx; gx = -gy; gy = t2;
+        }
+
+        window.gravity_vector = { x: gx, y: gy };
+    });
+}   
 // main
 // the global one, again
 // fyi not the class one 
