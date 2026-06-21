@@ -40,8 +40,8 @@ Genuienly just 3 files:
 no framework, no build step, no npm, just run index.html and make sure evrythign is in the same folder.
 
 ## notes (future features)
-Custom text
-Color change for oil and water.
+- Custom text
+- Color change for oil and water.
 
 
 ## credit
