@@ -7,11 +7,11 @@
 }
 
 body {
-    margin: 0;
-    background: #000;
-    color: #fff;
-    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Monaco,
-        "Courier New", monospace, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    margin:0;
+    background:#000;
+    color:#fff;
+    font-family:SFMono-Regular, Consolas, "Liberation Mono", Menlo, Monaco,
+        "Courier New", monospace, "Apple Color Emoji", "Segoe UI Emoji","segoe UI Symbol";
 }
 
 canvas {
@@ -26,25 +26,25 @@ canvas {
 .render {
     position: fixed;
     top: 0;
-    left: 0;
-    white-space: pre;
-    letter-spacing: 0.4em;
+    left:0;
+    white-space:pre;
+    letter-spacing:0.4em;
 }
 
 .info {
     text-transform: uppercase;
     position: fixed;
     top: 0.5em;
-    letter-spacing: 0.1em;
+    letter-spacing:0.1em;
     z-index: 100;
 }
 
 .info.-right {
-    right: 0;
+    right:0;
 }
 
 .info.-left {
-    left: 0;
+    left:0
 }
 
 .render,
@@ -59,10 +59,10 @@ canvas {
     text-decoration: none;
     display: block;
     padding: 0.5em 1em 1.5em;
-    text-align: right;
+    text-align:right;
 }
 
-.info a:hover {
+.info a:hover{
     color: #00ffff
 }
 
@@ -78,7 +78,10 @@ canvas {
     transform: translateX(-50%);
     display: flex;
     align-items: center;
-    gap: 0.8em;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap :0.8em;
+    max-width:90vw;
     z-index: 100;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -88,36 +91,60 @@ canvas {
 }
 
 .controls .info-label {
-    display: inline-block;
+    display:inline-block;
     background: black;
     padding: 0.3em 0.5em;
 }
 
 .controls input[type=range] {
-    width: 40vw;
-    max-width: 320px;
+    width: 30vw;
+    max-width: 240px;
     accent-color: #00ffff;
 }
 
-.hotkeys {
+.buttons {
     position: fixed;
-    bottom: 1em;
-    left: 1em;
+    top:3.2em;
+    left: 0.5em;
+    right: 0.5em;
     z-index: 100;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-size: var(--cell-size);
-    line-height: var(--cell-size);
-    font-weight: 700;
+    display: flex;
+    flex-wrap: wrap;
+    gap : 0.4em;
+    justify-content: center;
 }
 
-.hotkeys .info-label {
-    display: inline-block;
+.btn {
     background: black;
-    padding: 0.3em 0.5em;
-    margin-bottom: 0.3em;
+    color: #00ffff;
+    border: 1px solid #00ffff;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.6em 0.9em;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    white-space: nowrap;
 }
 
+.btn:hover {
+    background: #00ffff;
+    color: #000;
+}
+.btn.-active {
+    background:#00ffff;
+    color: #000;
+}
+@media (max-width:700px) {
+    .btn {
+        font-size:13px;
+        padding: 0.7em 1em;
+    }
+    .controls input[type=range] {width:45vw; }
+}
 #errbox {
     display: none;
     position: fixed;
@@ -127,10 +154,14 @@ canvas {
     z-index: 1000;
     margin: 0;
     padding: 1em;
-    background: #300;
-    color: #f55;
-    font-size: 12px;
+    background:#300;
+    color:#f55;
+    font-size:12px;
     line-height: 1.4;
     white-space: pre-wrap;
     font-family: monospace;
+}
+
+.render .oil {
+    color: #ffd400;
 }
