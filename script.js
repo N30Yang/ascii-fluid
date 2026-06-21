@@ -991,7 +991,7 @@ function setup_device_motion() {
         // our sim's Y points UP and normal gravity is negative (down). the sensor's
         // y is "south->north" which is the opposite of screen-down, so negate y to
         // make the fluid pool toward the low edge instead of upside down.
-        var gx = x;
+        var gx = -x;
         var gy = -y;
 
         // landscape: the device axes are fixed to the hardware, but the screen
