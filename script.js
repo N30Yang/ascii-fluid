@@ -171,6 +171,8 @@ class FlipFluid {
         this.particle_color = new Float32Array(3 * this.max_particles);
         for (var i = 0; i < this.max_particles; i++) this.particle_color[3 * i + 2] = 1.0;
         this.particle_vel = new Float32Array(2 * this.max_particles);
+        this.particle_type = new Uint8Array(this.max_particles);
+        this.oil_grid = new Uint8Array(this.f_num_cells);
         this.particle_density = new Float32Array(this.f_num_cells);
         this.particle_rest_density = 0.0;
         this.particle_radius = particleRadius;
@@ -186,9 +188,13 @@ class FlipFluid {
         for (var i = 0; i < this.num_particles; i++) {
             let gravity_x = 0;
             let gravity_y = gravity;
-            if (window.gravity_vector) {
+            if (window.gravity_vector && window.use_tilt) {
                 gravity_x = window.gravity_vector.x;
                 gravity_y = window.gravity_vector.y;
+            }
+
+            if (this.particle_type[i] ===1 ) {
+                gravity_y += -gravity * 0.65;
             }
 
             this.particle_vel[2 * i] += dt * gravity_x;
@@ -218,7 +224,9 @@ class FlipFluid {
 
     // this is unused, irealised a little to late ig
     // tobe implemented (never)
-    spawn_at(sx, sy, count) {
+    // i lied, no im using it
+    spawn_at(sx, sy, count, type) {
+        if (type === undefined) type =0;
         var r = this.particle_radius;
         for (var k = 0; k < count; k++) {
             if (this.num_particles >= this.max_particles) break;
@@ -229,6 +237,7 @@ class FlipFluid {
             this.particle_pos[2 * i + 1] = sy + Math.sin(ang) * rad; // holy trig
             this.particle_vel[2 * i] = 0;
             this.particle_vel[2 * i + 1] = 0;
+            this.particle_type[i] = type;
             this.particle_color[3 * i] = 0;
             this.particle_color[3 * i + 1] = 0;
             this.particle_color[3 * i + 2] = 1.0;
@@ -316,7 +325,11 @@ class FlipFluid {
     // WHY DID I SHOOSE A HEXAGON, TRIGINOMETRY IS AHH
     // A CIRCLE WOULD BE SO MUCH EASIER
     // CIRCLES ARE ONE LINE OF CODE
-    handle_particle_collisions(obstacle_x, obstacle_y, obstacle_radius) {
+    handle_particle_collisions(obstacle_x, obstacle_y, obstacle_radius, sides, obs_vel_x, obs_vel_y, obs_angle) {
+        if (sides === undefined) sides = 6;
+        if (obs_vel_x === undefined) obs_vel_x=0;
+        if (obs_vel_y === undefined) obs_vel_y=0;
+        if (obs_angle === undefined) obs_angle = 0;
         var h = 1.0 / this.f_inv_spacing;
         var r = this.particle_radius;
         var min_x = h + r,
@@ -327,8 +340,8 @@ class FlipFluid {
         // start at angle 0 and step by 60 degrees
         var R = obstacle_radius;
         var hex = [];
-        for (var k = 0; k < 6; k++) {
-            var ang = (Math.PI / 3) * k;
+        for (var k = 0; k < sides; k++) {
+            var ang = (Math.PI *2/sides)*k+obs_angle;
             hex.push({
                 x: obstacle_x + R * Math.cos(ang),
                 y: obstacle_y + R * Math.sin(ang)
@@ -343,9 +356,9 @@ class FlipFluid {
         function in_hex(px, py) {
             var pos = false,
                 neg = false;
-            for (var e = 0; e < 6; e++) {
+            for (var e = 0; e < sides; e++) {
                 var a = hex[e],
-                    b = hex[(e + 1) % 6];
+                    b = hex[(e + 1) % sides];
                 var d = sign(px, py, a.x, a.y, b.x, b.y);
                 if (d > 0) pos = true;
                 if (d < 0) neg = true;
@@ -362,9 +375,9 @@ class FlipFluid {
                 var best_x = x,
                     best_y = y,
                     best = Number.MAX_VALUE;
-                for (var e = 0; e < 6; e++) {
+                for (var e = 0; e < sides; e++) {
                     var p1 = hex[e],
-                        p2 = hex[(e + 1) % 6]
+                        p2 = hex[(e + 1) % sides]
                     var ex = p2.x - p1.x,
                         ey = p2.y - p1.y;
                     var px = x - p1.x,
@@ -382,8 +395,8 @@ class FlipFluid {
                 }
                 x = best_x;
                 y = best_y;
-                this.particle_vel[2 * i] = 0;
-                this.particle_vel[2 * i + 1] = 0;
+                this.particle_vel[2 * i] = obs_vel_x;
+                this.particle_vel[2 * i + 1] = obs_vel_y;
             }
 
             if (x < min_x) {
@@ -416,6 +429,7 @@ class FlipFluid {
             h2 = 0.5 * h;
         var d = this.particle_density;
         d.fill(0.0);
+        this.oil_grid.fill(0);
         for (var i = 0; i < this.num_particles; i++) {
             var x = clamp(this.particle_pos[2 * i], h, (this.f_num_x - 1) * h);
             var y = clamp(this.particle_pos[2 * i + 1], h, (this.f_num_y - 1) * h);
@@ -431,6 +445,11 @@ class FlipFluid {
             if (x1 < this.f_num_x && y0 < this.f_num_y) d[x1 * n + y0] += tx * sy;
             if (x1 < this.f_num_x && y1 < this.f_num_y) d[x1 * n + y1] += tx * ty;
             if (x0 < this.f_num_x && y1 < this.f_num_y) d[x0 * n + y1] += sx * ty;
+            if ( this.particle_type[i] ===1) {
+                var oxi = clamp(Math.floor(x*h1), 0, this.f_num_x-1);
+                var oyi = clamp(Math.floor(y*h1),0,this.f_num_y-1);
+                this.oil_grid[oxi*n+oyi]=1;
+            }
         }
         if (this.particle_rest_density == 0.0) {
             var sum = 0.0,
@@ -602,10 +621,10 @@ class FlipFluid {
 
     //ok this basically runs everything
     // my arguements are beautiful. SO MANY ARGUMENTS
-    simulate(dt, flip_ratio, num_pressure_iters, num_particle_iters, over_relaxation, compensate_drift, seperate_particles, obstacle_x, obstacle_y, obstacle_radius) {
+   simulate(dt, flip_ratio, num_pressure_iters, num_particle_iters, over_relaxation, compensate_drift, seperate_particles, obstacle_x, obstacle_y, obstacle_radius, obstacle_sides, obs_vel_x, obs_vel_y, obs_angle) {
         this.intergrate_particles(dt);
         if (seperate_particles) this.push_particles_apart(num_particle_iters);
-        this.handle_particle_collisions(obstacle_x, obstacle_y, obstacle_radius);
+        this.handle_particle_collisions(obstacle_x, obstacle_y, obstacle_radius, obstacle_sides, obs_vel_x, obs_vel_y, obs_angle);
         this.transfer_velocities(true);
         this.update_particle_density();
         this.solve_incompressibility(num_pressure_iters, dt, over_relaxation, compensate_drift);
@@ -633,6 +652,16 @@ var scene = {
     target_x: 0.0,
     target_y: 0.0,
     obstacle_radius: 0,
+    target_radius:0.18,
+    follow_speed:0.18,
+    obstacle_sides: 6,
+    obstacle_vel_x:0.0,
+    obstacle_vel_y:0.0,
+    obstacle_angle:0.0,
+    obstacle_spin:0.0,
+    grabbed: false,
+    restitution: 0.45,
+    free_puck: false,
     target_radius: 0.18,
     follow_speed: 0.18,
     paused: false,
@@ -681,23 +710,59 @@ function setup_scene() {
             f.s[i * n + j] = s;
         }
     }
-
 }
 
-// set where hexagon should move on click, it eases toward this in update(), so the
-// fluid ets pushed arounf instaed of being blown up
-// this code just moves the hexagon, the collision does most of the work
+// FLING
 
-function set_obstacle(x, y, reset) {
-    scene.target_x = x;
-    scene.target_y = y;
-    if (reset) {
-        // on a fresh start, snape the target but let the  body glide there
-        scene.target_x = x;
-        scene.target_y = y;
+function start_drag(cx, cy) {
+    mouse_down=true;
+    scene.grabbed = true;
+    let s = to_sim(cx,cy);
+    if (scene.free_puck) {
+        scene.obstacle_x = s.x;
+        scene.obstacle_y = s.y;
+        scene.obstacle_vel_x = 0;
+        scene.obstacle_vel_y = 0;
+        scene._last_grab_x = s.x;
+        scene._last_grab_y=s.y;
+    } else {
+        scene.target_x = s.x;
+        scene.target_y=s.y;
     }
 }
 
+function drag(cx,cy) {
+    if (!mouse_down) return;
+    let s = to_sim(cx,cy);
+    if (scene.free_puck) {
+        scene.obstacle_vel_x = (s.x - scene._last_grab_x) / scene.dt;
+        scene.obstacle_vel_y = (s.y - scene._last_grab_y) /scene.dt;
+        scene.obstacle_x = s.x;
+        scene.obstacle_y = s.y;
+        scene._last_grab_y = s.y;
+        scene._last_grab_x = s.x;
+    } else {
+        scene.target_x = s.x;
+        scene.target_y=s.y;
+    }
+}
+
+function end_drag() {
+    mouse_down = false;
+    scene.grabbed = false;
+    if (scene.free_puck) {
+        var max_speed = sim_height *2.5;
+        var sp = Math.sqrt(scene.obstacle_vel_x * scene.obstacle_vel_x + scene.obstacle_vel_y * scene.obstacle_vel_y)
+        if (sp > max_speed) {
+            var k = max_speed/sp;
+            scene.obstacle_vel_x *= k;
+            scene.obstacle_vel_y *= k;
+        }
+    }
+}
+// set where hexagon should move on click, it eases toward this in update(), so the
+// fluid ets pushed arounf instaed of being blown up
+// this code just moves the hexagon, the collision does most of the work
 
 // interaction with mouse
 var mouse_down = false;
@@ -717,23 +782,6 @@ function to_sim(clientX, clientY) {
         y: grid_row * f.h
     };
 }
-
-function start_drag(cx, cy) {
-    mouse_down = true;
-    let s = to_sim(cx, cy);
-    set_obstacle(s.x, s.y, true);
-}
-
-function drag(cx, cy) {
-    if (!mouse_down) return;
-    let s = to_sim(cx, cy);
-    set_obstacle(s.x, s.y, false);
-}
-
-function end_drag() {
-    mouse_down = false;
-}
-
 render_el.addEventListener("mousedown", (e) => {
     scene.dt = speed_1;
     start_drag(e.clientX, e.clientY);
@@ -771,13 +819,126 @@ function apply_slider_size() {
 size_slider.addEventListener("input", apply_slider_size);
 apply_slider_size();
 
-document.addEventListener("keydown", (e) => {
-    if (e.key == "p") scene.paused = !scene.paused;
-    if (e.key == "s") {
-        scene.paused = false;
-        f.shake(6.0);
+// shape and oil and rain
+var shape_cycle = [
+    [3, "triangle"],
+    [4,"square"],
+    [5, "pentagon"],
+    [6, "hexagon"],
+    [8, "octagon"],
+    [32, "circle"], // circle is 32 becuase there is no major diference from 32 to 32+ becuase of resolution
+];
+var shape_index =3;
+var raining = false;
+var oiling=false;
+
+function action_toggle_pause() {
+    scene.paused =!scene.paused;
+    var b = document.getElementById("btn_pause");
+    if (b) b.classList.toggle("-active", scene.paused);
+}
+function action_shake() {
+    scene.paused = false;
+    f.shake(6.0);
+    // kick the shapw in a random upward direction: random angle with +-90 degrees of straight up
+    var up = Math.PI/2;
+    var ang = up+ (Math.random()-0.5)*Math.PI;
+    var power = (0.6+Math.random()*0.6) * sim_height*2.0;
+    scene.obstacle_vel_x += Math.cos(ang)*power;
+    scene.obstacle_vel_y += Math.sin(ang) * power;
+}
+function action_rain_start() {
+    raining = true;
+    scene.paused = false;
+    var b = document.getElementById("btn_rain");
+    if (b) b.classList.add("-active");
+}
+function action_rain_stop() {
+    raining = false;
+    var b = document.getElementById("btn_rain");
+    if (b) b.classList.remove("-active");
+}
+function action_cycle_shape() {
+    shape_index = (shape_index + 1) %shape_cycle.length;
+    scene.obstacle_sides = shape_cycle[shape_index][0];
+    update_shape_label();
+}
+function action_oil_start() {
+    oiling = true;
+    scene.paused = false;
+    var b = document.getElementById("btn_oil")
+    if (b) b.classList.add("-active");
+}
+function action_oil_stop() {
+    oiling = false;
+    var b = document.getElementById("btn_oil");
+    if (b) b.classList.remove("-active");
+}
+function action_toggle_gravity() {
+    scene.free_puck = !scene.free_puck;
+    if (!scene.free_puck) {
+        scene.obstacle_vel_x =0;
+        scene.obstacle_vel_y =0;
+        scene.target_x = scene.obstacle_x;
+        scene.target_y = scene.obstacle_y;
     }
+    update_gravity_label();
+}
+
+document.addEventListener("keydown", (e) => {
+    if (e.target && e.target.tagName === "INPUT") return;
+    if (e.repeat && e.key != "r") return;
+    if (e.key == "p") action_toggle_pause();
+    if (e.key == "s") action_shake();
+    if (e.key == "r") action_rain_start();
+    if (e.key =="c") action_cycle_shape();
+    if (e.key == "o") action_oil_start();
+    if (e.key =="g") action_toggle_gravity();
 });
+
+document.addEventListener("keyup", (e) => {
+    if (e.key == "r") action_rain_stop();
+    if (e.key =="o") action_oil_stop(); 
+});
+
+
+// on screen button so it more accessable for mobile users
+function on_tap(id, fn) {
+    var b = document.getElementById(id);
+    if (!b) return;
+    b.addEventListener("click", function (e) { e.preventDefault(); fn(); });
+}
+on_tap("btn_pause", action_toggle_pause);
+on_tap("btn_shake", action_shake);
+on_tap("btn_shape", action_cycle_shape);
+on_tap("btn_gravity", action_toggle_gravity);
+
+function on_hold(id, start_fn, stop_fn) {
+    var b = document.getElementById(id);
+    if (!b) return;
+    var down = function (e) { e.preventDefault(); start_fn(); };
+    var up = function(e) { e.preventDefault(); stop_fn(); };
+    b.addEventListener("touchstart", down, {passive:false});
+    b.addEventListener("touchend", up);
+    b.addEventListener("touchcancel", up);
+    b.addEventListener("mousedown",down);
+    b.addEventListener("mouseup",up);
+    b.addEventListener("mouseleave",up);
+}
+on_hold("btn_oil", action_oil_start,action_oil_stop);
+on_hold("btn_rain", action_rain_start,action_rain_stop);
+window.use_tilt = true;
+
+function update_shape_label() {
+    var el = document.getElementById("btn_shape");
+    if (el) el.textContent = "shape: " +shape_cycle[shape_index][1]+" [c]";
+}
+update_shape_label();
+function update_gravity_label() {
+    var el = document.getElementById("btn_gravity");
+    if (el) el.textContent = "puck: " + (scene.free_puck ? "free" : "pinned") + " [g]";
+}
+update_gravity_label();
 
 let resize_timeout;
 window.addEventListener("resize", () => {
@@ -830,7 +991,7 @@ function setup_device_motion() {
         // our sim's Y points UP and normal gravity is negative (down). the sensor's
         // y is "south->north" which is the opposite of screen-down, so negate y to
         // make the fluid pool toward the low edge instead of upside down.
-        var gx = -x;
+        var gx = x;
         var gy = -y;
 
         // landscape: the device axes are fixed to the hardware, but the screen
@@ -852,7 +1013,8 @@ function simulate() {
         scene.fluid.simulate(
             scene.dt, scene.flip_ratio, scene.num_pressure_iters, scene.num_particle_iters,
             scene.over_relaxation, scene.compensate_drift, scene.seperate_particles,
-            scene.obstacle_x, scene.obstacle_y, scene.obstacle_radius
+            scene.obstacle_x, scene.obstacle_y, scene.obstacle_radius, scene.obstacle_sides,
+            scene.obstacle_vel_x, scene.obstacle_vel_y, scene.obstacle_angle
         );
     }
     scene.frame_nr++
@@ -860,40 +1022,88 @@ function simulate() {
 // render loop, to well render - in a loop
 // hi its 1 am, help
 
+var oil_ramp = "  .:oO0@";  
+
 function update() {
     // ease the live radius so changing size is smoother
     scene.obstacle_radius = scene.obstacle_radius * 0.8 + scene.target_radius * 0.2;
-    // glide the hexagon instead of teleporting or snappinf
-    // displace gradually instead of well, exploding
-    scene.obstacle_x += (scene.target_x - scene.obstacle_x) * scene.follow_speed;
-    scene.obstacle_y += (scene.target_y - scene.obstacle_y) * scene.follow_speed;
+
+    if (!scene.free_puck) {
+        scene.obstacle_x +=(scene.target_x - scene.obstacle_x) * scene.follow_speed;
+        scene.obstacle_y +=(scene.target_y - scene.obstacle_y) * scene.follow_speed;
+    } else if (!scene.grabbed && !scene.paused) {
+        var puck_dt = scene.dt *4.0;
+        if (window.gravity_vector) {
+            scene.obstacle_vel_x += window.gravity_vector.x *0.15*puck_dt;
+            scene.obstacle_vel_y += window.gravity_vector.y *0.15*puck_dt;
+        }
+        scene.obstacle_vel_x *= 0.995;
+        scene.obstacle_vel_y *= 0.995;
+        scene.obstacle_x += scene.obstacle_vel_x * puck_dt;
+        scene.obstacle_y += scene.obstacle_vel_y*puck_dt;
+        var R = scene.obstacle_radius * Math.cos(Math.PI / scene.obstacle_sides);
+        var lo_x = R, hi_x = sim_width-R;
+        var lo_y =R, hi_y=sim_height-R;
+        if (scene.obstacle_x<lo_x) { scene.obstacle_x = lo_x; scene.obstacle_vel_x= -scene.obstacle_vel_x*scene.restitution; }
+        if (scene.obstacle_x>hi_x) {scene.obstacle_x=hi_x; scene.obstacle_vel_x=-scene.obstacle_vel_x*scene.restitution;}
+        if (scene.obstacle_y<lo_y) {scene.obstacle_y = lo_y; scene.obstacle_vel_y = -scene.obstacle_vel_y*scene.restitution;}
+        if (scene.obstacle_y>hi_y) {scene.obstacle_y = hi_y; scene.obstacle_vel_y = -scene.obstacle_vel_y*scene.restitution;}
+        scene.obstacle_spin = scene.obstacle_vel_x*0.03;
+        scene.obstacle_angle += scene.obstacle_spin;
+    }
 
     simulate();
-    let to_render = "";
-    for (let i = f.f_num_y - cell_crop_y; i > cell_crop_y; i--) {
-        let row = "";
-        for (let j = cell_crop_x; j < f.f_num_x - cell_crop_x; j++) {
-            const charset = render_chars[Math.floor((i + j + 1) % render_chars.length)];
-            const ramp = charset.slice().sort((a, b) => a[1] - b[1]).map(([c]) => c).join("");
-            const cell_color = f.cell_color[3 * (j * f.f_num_y + i)];
-            row += ramp[Math.min(Math.floor(cell_color * ramp.length), ramp.length - 1)];
+    if (raining && !scene.paused) {
+        for (var dropi=0; dropi<3;dropi++) {
+            var rx = (0.05 + Math.random() *0.9) *sim_width;
+            var ry = sim_height * (0.92+Math.random() *0.05);
+            f.spawn_at(rx, ry, 2, 0);
         }
-        to_render += row + "\n";
     }
-    render_el.textContent = to_render;
+
+    if (oiling && !scene.paused) {
+        var oilx = (0.2+Math.random()*0.6) *sim_width;
+        var oily = sim_height*0.85;
+        f.spawn_at(oilx,oily,12,1);
+    }
+    let to_render = "";
+    var oil_open = false;
+    for (let i = f.f_num_y - cell_crop_y; i>cell_crop_y; i--) {
+        let row = "";
+        for (let j = cell_crop_x; j<f.f_num_x - cell_crop_x; j++) {
+            const idx = j*f.f_num_y +i;
+            const cell_color = f.cell_color[3*idx];
+            const is_oil = f.oil_grid[idx];
+            let ramp;
+            if (is_oil) {
+                ramp = oil_ramp;
+            } else {
+                const charset = render_chars[Math.floor((i+j+1) %render_chars.length)];
+                ramp = charset.slice().sort((a,b) => a[1] -b[1]).map(([c]) =>c).join("");
+            }
+            var ch = ramp[Math.min(Math.floor(cell_color * ramp.length), ramp.length - 1)];
+            if (is_oil && !oil_open) { row += "<span class='oil'>"; oil_open = true; }
+            if (!is_oil && oil_open) { row += "</span>"; oil_open = false; } 
+            if (ch === "<") ch = "&lt;";            
+            else if (ch === ">") ch = "&gt;";                   
+            else if (ch === "&") ch = "&amp;";                     
+            row += ch;        
+        }
+        if (oil_open) { row += "</span>"; oil_open = false; }
+            to_render += row + "\n";
+    }
+    render_el.innerHTML = to_render;
     requestAnimationFrame(update);
 }
 
 setup_scene();
-// drop the hexagon in the middle of the tank
-// NEEDED!!!!! set BOTH the pos and easing target otherwise update()
-//glides towards target (0,0) = bottomest of lefts on the first spawn
-// this was annoying
 
-var center_x = ((cell_crop_x + (f.f_num_x - cell_crop_x))/2)* f.h;
-var center_y = ((cell_crop_y + (f.f_num_y - cell_crop_y)) / 2) * f.h;
-scene.obstacle_x = center_x;
-scene.obstacle_y = center_y;
-scene.target_x = center_x;
-scene.target_y = center_y;
+var center_x = ((cell_crop_x+(f.f_num_x - cell_crop_x))/2)*f.h;
+var center_y = ((cell_crop_y+(f.f_num_y - cell_crop_y)) /2)*f.h;
+scene.obstacle_x=center_x;
+scene.obstacle_y=center_y;
+scene.target_x=center_x;
+scene.target_y=center_y;
+scene.obstacle_vel_x=0;
+scene.obstacle_vel_y = 0;
 update();

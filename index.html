@@ -33,35 +33,35 @@
             <!-- for any avid review er watching this, :)-->
         </a>
     </div>
+    <!-- hotkeys and controls-->
+     <div class="buttons">
+        <button class="btn" id="btn_pause">pause [p]</button>
+        <button class="btn" id="btn_shake">shake[s]</button>
+        <button class="btn" id="btn_rain">rain [r]</button>
+        <button class="btn" id="btn_oil">oil [oil]</button>
+        <button class="btn" id="btn_shape">shape: hexagon [c]</button>
+        <button class="btn" id="btn_gravity">puck: pinned [g]</button>
+     </div>
 
-    <!-- hotkeys legend, bottom left -->
-    <div class="hotkeys">
-        <div class="info-label">drag &mdash; move hexagon</div>
-        <div class="info-label">[ p ] &mdash; pause</div>
-        <div class="info-label">[ s ] &mdash; shake / explode</div>
-    </div>
-
-    <div class="controls">
-        <label class="info-label" for="size_slider">hex size</label>
-        <input id="size_slider" type="range" min="10" max="200" value="100" step="1" />
+     <div class="controls">
+        <label class="info-label" for="size_slider">size</label>
+        <input id="size_slider" type="range" min="10" max="200" value="100" step="1"/>
         <span class="info-label" id="size_val">100</span>
-    </div>
+     </div>
 
-    <!-- if the script crashes, the error shows here instead of a blank screen -->
-    <pre id="errbox"></pre>
-
-    <script>
-        // surface any script error on-screen so it's not just a dead page
+     <!--error checking-->
+     <pre id="errbox"></pre>
+     <script>
         window.addEventListener("error", function (e) {
             var box = document.getElementById("errbox");
             if (box) {
                 box.style.display = "block";
                 box.textContent = "JS ERROR: " + (e.message || e.error) +
-                    "\n" + (e.filename || "") + ":" + (e.lineno || "");
+                    "\n" + (e.filename || "") +":"+(e.lineno||"");
             }
         });
     </script>
     <script src="script.js"></script>
-</body>
+</body>    
 
 </html>
