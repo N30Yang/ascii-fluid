@@ -7,9 +7,7 @@ Made for **hack club Horizons 2026**
 ## what it actually is
 
 [![Watch the video](https://img.youtube.com/vi/YwqoILgEVkE/hqdefault.jpg)](https://www.youtube.com/embed/YwqoILgEVkE)
-
-[<img src="https://img.youtube.com/vi/YwqoILgEVkE/hqdefault.jpg" width="600" height="300"
-/>](https://www.youtube.com/embed/YwqoILgEVkE)
+# I AM A VIDEO! CLICK ON ME ^^^
 
 It's a FLIP fluid sim (The physics kind, particles+density ramp+ a grid) but instead of drawing pixes it spells everything in letters, in fact there are no images in the entire website. Brighter fluid = denser letters, empty space = empty space.
 
