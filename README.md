@@ -42,7 +42,7 @@ no framework, no build step, no npm, just run index.html and make sure evrythign
 ## notes (future features)
 Custom text
 Color change for oil and water.
-
+Add outline to shape?
 
 ## credit
 The backbone of this is Matthias Müller's "Ten Minute Physics" tutorial #18, which uses the origianal code but I've changed it so much, just look at the og repo. I've rewrote basically evrything: The renderer for ascii, Hexagon, Shake, tilt, resizing, oil, rain, puck, and pausing.
