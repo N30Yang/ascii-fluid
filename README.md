@@ -1,6 +1,6 @@
 # Liquid Ascii
 
-## Also check out my CLI version  [![Watch the video](https://github.com/N30Yang/FluidAsciiCLI)]
+## [![Also check out my CLI version](https://github.com/N30Yang/FluidAsciiCLI)]
 Hi! This is a fluid simulation that runs entirely in ascii characters. It's my first JS project (and kinda my first major project in general) so the code is a bit ugly but it works and im proud of it ok?
 
 Made for **hack club Horizons 2026**
